@@ -37,6 +37,7 @@
       height: 100%;
       width: auto;
       object-fit: cover;
+      object-position: center center;
     }
     
     /* Responsive Design for Mobile */
@@ -80,7 +81,7 @@
   <div id="header-container">
     <h2>360° Virtual Walkthrough</h2>
     <div id="logo">
-      <img src="logo.png" alt="Yagneshwaran Logo" />
+      <img src="logo" alt="Yagneshwaran Logo" />
     </div>
   </div>
   
@@ -94,6 +95,20 @@
   <button class="nav-btn" onclick="loadScene('kitchen')">Go to Kitchen</button>
   
   <script>
+    function getImagePath(baseName) {
+      const formats = [".jpg", ".jpeg", ".png"];
+      for (let format of formats) {
+        let img = new Image();
+        img.src = baseName + format;
+        if (img.complete || img.width > 0) {
+          return img.src;
+        }
+      }
+      return "";
+    }
+
+    document.querySelector("#logo img").src = getImagePath("logo");
+    
     let viewer = pannellum.viewer('panorama', {
       default: {
         firstScene: 'hall',
@@ -109,7 +124,7 @@
       scenes: {
         hall: {
           type: 'equirectangular',
-          panorama: 'hall.png',
+          panorama: getImagePath('hall'),
           hotSpots: [
             {
               pitch: -10,
@@ -122,7 +137,7 @@
         },
         kitchen: {
           type: 'equirectangular',
-          panorama: 'kitchen.png',
+          panorama: getImagePath('kitchen'),
           hotSpots: [
             {
               pitch: 0,
