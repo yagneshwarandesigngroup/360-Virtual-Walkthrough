@@ -19,8 +19,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      height: 80px; /* Default for PC */
       padding: 0 20px;
+      height: 80px;
       position: relative;
     }
     
@@ -28,38 +28,18 @@
       margin: 0;
       font-weight: 600;
       font-size: 16px;
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      white-space: nowrap;
+      flex-grow: 1;
+      text-align: left;
     }
     
-    /* Logo Styling */
+    /* Logo styling */
     #logo {
-      height: 50px; /* Default height */
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-    }
-    #logo img {
-      height: 100%;
+      height: 60px; /* Adjust the height of the logo */
       width: auto;
-      object-fit: cover;
-      object-position: center center;
-    }
-    
-    /* Responsive Design for Mobile */
-    @media (max-width: 768px) {
-      #header-container {
-        height: 40px; /* Reduced height for mobile */
-        padding: 0 10px;
-      }
-      #header-container h2 {
-        font-size: 12px;
-      }
-      #logo {
-        height: 30px; /* Adjust logo height accordingly */
-      }
+      position: absolute;
+      right: 20px;
+      top: 50%; /* Adjust vertical position */
+      transform: translateY(-50%); /* Fine-tune vertical alignment */
     }
     
     /* 360 Viewer Container */
@@ -67,6 +47,23 @@
       width: 100vw;
       height: 73vh;
       margin-top: 10px;
+    }
+    
+    /* Responsive Design for Mobile */
+    @media (max-width: 768px) {
+      #header-container {
+        height: 50px;
+        padding: 0 15px;
+      }
+      
+      #header-container h2 {
+        font-size: 12px;
+        line-height: 50px;
+      }
+      
+      #logo {
+        height: 40px; /* Adjust logo size for mobile */
+      }
     }
     
     /* Navigation buttons */
@@ -88,9 +85,7 @@
   <!-- Header with title and logo -->
   <div id="header-container">
     <h2>360° Virtual Walkthrough</h2>
-    <div id="logo">
-      <img src="logo" alt="Yagneshwaran Logo" />
-    </div>
+    <img id="logo" src="logo.jpg" alt="Logo" />
   </div>
   
   <div id="content-wrapper">
@@ -103,20 +98,6 @@
   <button class="nav-btn" onclick="loadScene('kitchen')">Go to Kitchen</button>
   
   <script>
-    function getImagePath(baseName) {
-      const formats = [".jpg", ".jpeg", ".png"];
-      for (let format of formats) {
-        let img = new Image();
-        img.src = baseName + format;
-        if (img.complete || img.width > 0) {
-          return img.src;
-        }
-      }
-      return "";
-    }
-
-    document.querySelector("#logo img").src = getImagePath("logo");
-    
     let viewer = pannellum.viewer('panorama', {
       default: {
         firstScene: 'hall',
@@ -132,7 +113,7 @@
       scenes: {
         hall: {
           type: 'equirectangular',
-          panorama: getImagePath('hall'),
+          panorama: 'hall.jpg',
           hotSpots: [
             {
               pitch: -10,
@@ -145,7 +126,7 @@
         },
         kitchen: {
           type: 'equirectangular',
-          panorama: getImagePath('kitchen'),
+          panorama: 'kitchen.jpg',
           hotSpots: [
             {
               pitch: 0,
