@@ -19,19 +19,27 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      height: 80px; /* Default for PC */
       padding: 0 20px;
-      height: 80px;
+      position: relative;
     }
+    
     #header-container h2 {
       margin: 0;
       font-weight: 600;
       font-size: 16px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
     }
     
     /* Logo Styling */
     #logo {
-      height: 50px; /* Default for PC */
+      height: 50px; /* Default height */
       overflow: hidden;
+      display: flex;
+      align-items: center;
     }
     #logo img {
       height: 100%;
@@ -43,14 +51,14 @@
     /* Responsive Design for Mobile */
     @media (max-width: 768px) {
       #header-container {
-        height: 20px;
+        height: 40px; /* Reduced height for mobile */
         padding: 0 10px;
       }
       #header-container h2 {
         font-size: 12px;
       }
       #logo {
-        height: 40px;
+        height: 30px; /* Adjust logo height accordingly */
       }
     }
     
@@ -77,7 +85,7 @@
 </head>
 <body>
 
-  <!-- Header with title on the left and logo on the right -->
+  <!-- Header with title and logo -->
   <div id="header-container">
     <h2>360° Virtual Walkthrough</h2>
     <div id="logo">
