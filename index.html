@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>360° Walkthrough | Yagneshwaran Design Group</title>
+  
+  <!-- Import Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  
+  <!-- Pannellum for 360° viewer (Using CDN) -->
+  <script src="https://cdn.pannellum.org/2.5/pannellum.js"></script>
+  <link rel="stylesheet" href="https://cdn.pannellum.org/2.5/pannellum.css" />
+  
+  <style>
+    body { font-family: "Poppins", sans-serif; margin: 0; text-align: center; }
+    
+    #header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      height: 80px;
+    }
+    #header-container h2 {
+      margin: 0;
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    /* Logo Styling */
+    #logo {
+      height: 50px; /* Default for PC */
+      overflow: hidden;
+    }
+    #logo img {
+      height: 100%;
+      width: auto;
+      object-fit: cover;
+    }
+    
+    /* Responsive Design for Mobile */
+    @media (max-width: 768px) {
+      #header-container {
+        height: 40px;
+        padding: 0 10px;
+      }
+      #header-container h2 {
+        font-size: 12px;
+      }
+      #logo {
+        height: 30px;
+      }
+    }
+    
+    /* 360 Viewer Container */
+    #panorama {
+      width: 100vw;
+      height: 73vh;
+      margin-top: 10px;
+    }
+    
+    /* Navigation buttons */
+    .nav-btn {
+      margin-top: 10px;
+      padding: 5px 10px;
+      font-size: 8px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+    .nav-btn:hover { background-color: #0056b3; }
+  </style>
+</head>
+<body>
+
+  <!-- Header with title on the left and logo on the right -->
+  <div id="header-container">
+    <h2>360° Virtual Walkthrough</h2>
+    <div id="logo">
+      <img src="logo.png" alt="Yagneshwaran Logo" />
+    </div>
+  </div>
+  
+  <div id="content-wrapper">
+    <!-- 360 Viewer -->
+    <div id="panorama"></div>
+  </div>
+  
+  <!-- Navigation Buttons -->
+  <button class="nav-btn" onclick="loadScene('hall')">Go to Hall</button>
+  <button class="nav-btn" onclick="loadScene('kitchen')">Go to Kitchen</button>
+  
+  <script>
+    let viewer = pannellum.viewer('panorama', {
+      default: {
+        firstScene: 'hall',
+        autoLoad: true,
+        showZoomCtrl: true,
+        minPitch: -120,
+        maxPitch: 120,
+        minYaw: -180,
+        maxYaw: 180,
+        minHfov: 30,
+        maxHfov: 80
+      },
+      scenes: {
+        hall: {
+          type: 'equirectangular',
+          panorama: 'hall.png',
+          hotSpots: [
+            {
+              pitch: -10,
+              yaw: -25,
+              type: 'scene',
+              text: 'Go to Kitchen',
+              sceneId: 'kitchen'
+            }
+          ]
+        },
+        kitchen: {
+          type: 'equirectangular',
+          panorama: 'kitchen.png',
+          hotSpots: [
+            {
+              pitch: 0,
+              yaw: 210,
+              type: 'scene',
+              text: 'Go to Hall',
+              sceneId: 'hall'
+            }
+          ]
+        }
+      }
+    });
+    
+    function loadScene(scene) {
+      viewer.loadScene(scene);
+    }
+  </script>
+</body>
+</html>
