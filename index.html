@@ -107,14 +107,9 @@
     // Function to get an image path for panorama images (best-effort approach)
     function getImagePath(name) {
       const formats = ['.jpg', '.jpeg', '.png'];
-      for (let ext of formats) {
-        let img = new Image();
-        img.src = name + ext;
-        if (img.complete || img.width) {
-          return img.src;
-        }
-      }
-      return name + '.png';
+      // Here we simply return the URL with the first format.
+      // For a more robust solution, asynchronous checks may be required.
+      return name + formats[0];
     }
     
     let viewer = pannellum.viewer('panorama', {
