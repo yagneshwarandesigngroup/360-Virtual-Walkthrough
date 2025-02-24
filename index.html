@@ -85,7 +85,7 @@
   <!-- Header with title and logo -->
   <div id="header-container">
     <h2>360° Virtual Walkthrough</h2>
-    <img id="logo" src="logo.jpg" alt="Logo" />
+    <img id="logo" src="logo.png" alt="Logo" onerror="this.onerror=null;this.src='logo.jpg';" />
   </div>
   
   <div id="content-wrapper">
@@ -98,6 +98,21 @@
   <button class="nav-btn" onclick="loadScene('kitchen')">Go to Kitchen</button>
   
   <script>
+    function getValidImage(filename) {
+      const formats = ['png', 'jpg', 'jpeg'];
+      for (let ext of formats) {
+        let img = new Image();
+        img.src = `${filename}.${ext}`;
+        img.onload = () => {
+          document.getElementById(filename).src = img.src;
+        };
+      }
+    }
+    
+    document.getElementById("logo").onerror = function() {
+      getValidImage("logo");
+    };
+    
     let viewer = pannellum.viewer('panorama', {
       default: {
         firstScene: 'hall',
@@ -113,7 +128,7 @@
       scenes: {
         hall: {
           type: 'equirectangular',
-          panorama: 'hall.jpg',
+          panorama: 'hall.png',
           hotSpots: [
             {
               pitch: -10,
@@ -126,7 +141,7 @@
         },
         kitchen: {
           type: 'equirectangular',
-          panorama: 'kitchen.jpg',
+          panorama: 'kitchen.png',
           hotSpots: [
             {
               pitch: 0,
