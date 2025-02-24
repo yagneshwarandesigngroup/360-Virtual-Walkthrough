@@ -21,7 +21,7 @@
     /* Header container always under 40px */
     #header-container {
       position: relative;
-      height: 40px;  /* Under 40px */
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -33,15 +33,15 @@
       font-weight: 600;
       font-size: 12px;
       flex-grow: 1;
-      text-align: left;
-      transform: translateY(10%); /* Adjust title vertical alignment here */
+      text-align: center;
+      transform: translateY(10%);
     }
     /* Logo styling – cropping the image inside its container */
     #logo {
       width: 50px;
       height: 50px;
-      object-fit: cover; /* Ensures the logo crops correctly */
-      transform: translateY(10%); /* Adjust logo vertical alignment here */
+      object-fit: cover;
+      transform: translateY(-40%);
     }
     /* 360 Viewer Container */
     #panorama {
@@ -73,8 +73,8 @@
   <!-- Header with title and logo -->
   <div id="header-container">
     <h2>360° Virtual Walkthrough</h2>
-    <!-- The logo image uses our fallback function via JavaScript below -->
-    <img id="logo" src="logo" alt="Logo" />
+    <!-- The logo's src will be set dynamically via our fallback function -->
+    <img id="logo" alt="Logo">
   </div>
   
   <div id="content-wrapper">
@@ -88,26 +88,34 @@
   <button class="nav-btn" id="btn-balcony" onclick="loadScene('balcony')">Go to Balcony</button>
   
   <script>
-    // Function to check for available image format (JPG, JPEG, PNG)
+    // Function to load an image with fallback for multiple formats
+    function loadImageWithFallback(imgElement, baseName, formats) {
+      let index = 0;
+      function tryNext() {
+        if (index >= formats.length) return;
+        imgElement.src = baseName + formats[index];
+        index++;
+      }
+      imgElement.onerror = tryNext;
+      tryNext();
+    }
+    
+    // Load the logo using fallback: tries .jpg, then .jpeg, then .png
+    loadImageWithFallback(document.getElementById("logo"), "logo", [".jpg", ".jpeg", ".png"]);
+    
+    // Function to get an image path for panorama images (best-effort due to async loading)
     function getImagePath(name) {
-      const formats = ['jpg', 'jpeg', 'png'];
-      // NOTE: Due to image loading being asynchronous, this is a best-effort approach.
-      // Here we simply return the URL with the first format, but you can extend this to
-      // perform actual runtime checks if necessary.
+      const formats = ['.jpg', '.jpeg', '.png'];
       for (let ext of formats) {
         let img = new Image();
-        img.src = name + '.' + ext;
+        img.src = name + ext;
         if (img.complete || img.width) {
           return img.src;
         }
       }
-      return name + '.png'; // Default fallback
+      return name + '.png';
     }
     
-    // Set the logo's src using our compatibility function
-    document.getElementById("logo").src = getImagePath("logo");
-    
-    // Initialize Pannellum viewer with compatibility for panorama images
     let viewer = pannellum.viewer('panorama', {
       default: {
         firstScene: 'hall',
@@ -125,8 +133,8 @@
           type: 'equirectangular',
           panorama: getImagePath('hall'),
           hotSpots: [
-            { pitch: -5, yaw: -25, type: 'scene', text: 'Go to Kitchen', sceneId: 'kitchen' },
-            { pitch: -5, yaw: -35, type: 'scene', text: 'Go to Balcony', sceneId: 'balcony' }
+            { pitch: -10, yaw: -25, type: 'scene', text: 'Go to Kitchen', sceneId: 'kitchen' },
+            { pitch: -5, yaw: 0, type: 'scene', text: 'Go to Balcony', sceneId: 'balcony' }
           ]
         },
         kitchen: {
@@ -148,7 +156,7 @@
       }
     });
     
-    // Function to update navigation button visibility so that the button for the current scene is hidden
+    // Update navigation buttons: hide the button for the current scene
     function updateNavButtons(currentScene) {
       const scenes = ['hall', 'kitchen', 'balcony'];
       scenes.forEach(scene => {
@@ -156,13 +164,12 @@
       });
     }
     
-    // Function to load a scene and update navigation buttons accordingly
     function loadScene(scene) {
       viewer.loadScene(scene);
       updateNavButtons(scene);
     }
     
-    // Initialize navigation buttons based on the first scene
+    // Initialize navigation buttons for the first scene
     updateNavButtons('hall');
   </script>
 </body>
