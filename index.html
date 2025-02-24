@@ -23,6 +23,7 @@
       justify-content: space-between;
       padding: 0 20px;
     }
+    
     #header-container h2 {
       margin: 0;
       font-weight: 600;
@@ -30,10 +31,11 @@
       transform: translateY(10%);
     }
     
-    /* Logo styling */
+    /* Logo Styling */
     #logo {
+      width: 50px;
       height: 50px;
-      transform: translateY(-10%);
+      transform: translateY(-40%);
     }
     
     /* 360 Viewer Container */
@@ -55,13 +57,32 @@
       border-radius: 10px;
     }
     .nav-btn:hover { background-color: #0056b3; }
+    
+    @media (max-width: 768px) {
+      #header-container {
+        height: 40px;
+        padding: 0 15px;
+      }
+      
+      #header-container h2 {
+        font-size: 10px;
+        transform: translateY(6px);
+      }
+      
+      #logo {
+        width: 40px;
+        height: 40px;
+        transform: translateY(-20px);
+      }
+    }
   </style>
 </head>
 <body>
+  
   <!-- Header with title and logo -->
   <div id="header-container">
     <h2>360° Virtual Walkthrough</h2>
-    <img id="logo" src="logo.png" alt="Logo" />
+    <img id="logo" src="logo" alt="Logo" />
   </div>
   
   <div id="content-wrapper">
@@ -75,18 +96,18 @@
   <button class="nav-btn" onclick="loadScene('balcony')">Go to Balcony</button>
   
   <script>
-    function getCompatibleImage(name) {
-      let formats = [".jpg", ".jpeg", ".png"];
-      for (let format of formats) {
+    function getImagePath(name) {
+      const formats = ['jpg', 'jpeg', 'png'];
+      for (let ext of formats) {
         let img = new Image();
-        img.src = name + format;
-        if (img.complete || img.width > 0) {
-          return name + format;
-        }
+        img.src = `${name}.${ext}`;
+        if (img.complete || img.width) return img.src;
       }
-      return name + ".png"; // Default fallback
+      return '';
     }
-
+    
+    document.getElementById("logo").src = getImagePath("logo");
+    
     let viewer = pannellum.viewer('panorama', {
       default: {
         firstScene: 'hall',
@@ -102,25 +123,18 @@
       scenes: {
         hall: {
           type: 'equirectangular',
-          panorama: getCompatibleImage('hall'),
-          hotSpots: [
-            { pitch: -10, yaw: -25, type: 'scene', text: 'Go to Kitchen', sceneId: 'kitchen' },
-            { pitch: 0, yaw: 100, type: 'scene', text: 'Go to Balcony', sceneId: 'balcony' }
-          ]
+          panorama: getImagePath('hall'),
+          hotSpots: [{ pitch: -10, yaw: -25, type: 'scene', text: 'Go to Kitchen', sceneId: 'kitchen' }]
         },
         kitchen: {
           type: 'equirectangular',
-          panorama: getCompatibleImage('kitchen'),
-          hotSpots: [
-            { pitch: 0, yaw: 210, type: 'scene', text: 'Go to Hall', sceneId: 'hall' }
-          ]
+          panorama: getImagePath('kitchen'),
+          hotSpots: [{ pitch: 0, yaw: 210, type: 'scene', text: 'Go to Hall', sceneId: 'hall' }]
         },
         balcony: {
           type: 'equirectangular',
-          panorama: getCompatibleImage('balcony'),
-          hotSpots: [
-            { pitch: 0, yaw: 210, type: 'scene', text: 'Go to Hall', sceneId: 'hall' }
-          ]
+          panorama: getImagePath('balcony'),
+          hotSpots: [{ pitch: 0, yaw: 180, type: 'scene', text: 'Go to Hall', sceneId: 'hall' }]
         }
       }
     });
