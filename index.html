@@ -17,7 +17,7 @@
     
     #header-container {
       position: relative;
-      height: 50px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -26,15 +26,14 @@
     #header-container h2 {
       margin: 0;
       font-weight: 600;
-      font-size: 12px;
+      font-size: 16px;
       transform: translateY(10%);
     }
     
     /* Logo styling */
     #logo {
-      width: 50px;
       height: 50px;
-      transform: translateY(-40%);
+      transform: translateY(-10%);
     }
     
     /* 360 Viewer Container */
@@ -59,11 +58,10 @@
   </style>
 </head>
 <body>
-
   <!-- Header with title and logo -->
   <div id="header-container">
     <h2>360° Virtual Walkthrough</h2>
-    <img id="logo" src="logo.jpeg" alt="Logo" />
+    <img id="logo" src="logo.png" alt="Logo" />
   </div>
   
   <div id="content-wrapper">
@@ -77,13 +75,16 @@
   <button class="nav-btn" onclick="loadScene('balcony')">Go to Balcony</button>
   
   <script>
-    function getCompatibleImage(filename) {
-      let extensions = ['.jpg', '.jpeg', '.png'];
-      for (let ext of extensions) {
+    function getCompatibleImage(name) {
+      let formats = [".jpg", ".jpeg", ".png"];
+      for (let format of formats) {
         let img = new Image();
-        img.src = filename + ext;
-        return img.src; // Return first available format
+        img.src = name + format;
+        if (img.complete || img.width > 0) {
+          return name + format;
+        }
       }
+      return name + ".png"; // Default fallback
     }
 
     let viewer = pannellum.viewer('panorama', {
@@ -104,7 +105,7 @@
           panorama: getCompatibleImage('hall'),
           hotSpots: [
             { pitch: -10, yaw: -25, type: 'scene', text: 'Go to Kitchen', sceneId: 'kitchen' },
-            { pitch: 5, yaw: 90, type: 'scene', text: 'Go to Balcony', sceneId: 'balcony' }
+            { pitch: 0, yaw: 100, type: 'scene', text: 'Go to Balcony', sceneId: 'balcony' }
           ]
         },
         kitchen: {
@@ -118,7 +119,7 @@
           type: 'equirectangular',
           panorama: getCompatibleImage('balcony'),
           hotSpots: [
-            { pitch: 0, yaw: 180, type: 'scene', text: 'Go to Hall', sceneId: 'hall' }
+            { pitch: 0, yaw: 210, type: 'scene', text: 'Go to Hall', sceneId: 'hall' }
           ]
         }
       }
