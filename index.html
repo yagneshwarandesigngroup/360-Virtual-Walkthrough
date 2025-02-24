@@ -27,7 +27,7 @@
       justify-content: space-between;
       padding: 0 10px;
     }
-    /* Title styling – adjust vertical alignment via translateY */
+    /* Title styling – aligned to the left, vertical adjustment via translateY */
     #header-container h2 {
       margin: 0;
       font-weight: 600;
@@ -82,10 +82,11 @@
     <div id="panorama"></div>
   </div>
   
-  <!-- Navigation Buttons (only showing rooms other than the current scene) -->
+  <!-- Navigation Buttons (external button system only) -->
   <button class="nav-btn" id="btn-hall" onclick="loadScene('hall')">Go to Hall</button>
   <button class="nav-btn" id="btn-kitchen" onclick="loadScene('kitchen')">Go to Kitchen</button>
   <button class="nav-btn" id="btn-balcony" onclick="loadScene('balcony')">Go to Balcony</button>
+  <button class="nav-btn" id="btn-mbed" onclick="loadScene('mbed')">Go to Master Bedroom</button>
   
   <script>
     // Function to load an image with fallback for multiple formats
@@ -103,7 +104,7 @@
     // Load the logo using fallback: tries .jpg, then .jpeg, then .png
     loadImageWithFallback(document.getElementById("logo"), "logo", [".jpg", ".jpeg", ".png"]);
     
-    // Function to get an image path for panorama images (best-effort due to async loading)
+    // Function to get an image path for panorama images (best-effort approach)
     function getImagePath(name) {
       const formats = ['.jpg', '.jpeg', '.png'];
       for (let ext of formats) {
@@ -132,33 +133,29 @@
         hall: {
           type: 'equirectangular',
           panorama: getImagePath('hall'),
-          hotSpots: [
-            { pitch: -10, yaw: -25, type: 'scene', text: 'Go to Kitchen', sceneId: 'kitchen' },
-            { pitch: -5, yaw: 0, type: 'scene', text: 'Go to Balcony', sceneId: 'balcony' }
-          ]
+          hotSpots: []  // No in-view navigation arrows
         },
         kitchen: {
           type: 'equirectangular',
           panorama: getImagePath('kitchen'),
-          hotSpots: [
-            { pitch: 0, yaw: 210, type: 'scene', text: 'Go to Hall', sceneId: 'hall' },
-            { pitch: 10, yaw: 90, type: 'scene', text: 'Go to Balcony', sceneId: 'balcony' }
-          ]
+          hotSpots: []  // No in-view navigation arrows
         },
         balcony: {
           type: 'equirectangular',
           panorama: getImagePath('balcony'),
-          hotSpots: [
-            { pitch: -10, yaw: -30, type: 'scene', text: 'Go to Hall', sceneId: 'hall' },
-            { pitch: 5, yaw: 180, type: 'scene', text: 'Go to Kitchen', sceneId: 'kitchen' }
-          ]
+          hotSpots: []  // No in-view navigation arrows
+        },
+        mbed: {
+          type: 'equirectangular',
+          panorama: getImagePath('mbed'),
+          hotSpots: []  // No in-view navigation arrows
         }
       }
     });
     
     // Update navigation buttons: hide the button for the current scene
     function updateNavButtons(currentScene) {
-      const scenes = ['hall', 'kitchen', 'balcony'];
+      const scenes = ['hall', 'kitchen', 'balcony', 'mbed'];
       scenes.forEach(scene => {
         document.getElementById('btn-' + scene).style.display = (scene === currentScene ? 'none' : 'inline-block');
       });
