@@ -83,7 +83,7 @@
   </div>
   
   <!-- Navigation Buttons (external button system only) -->
-  <button class="nav-btn" id="btn-hall" onclick="loadScene('hall')">Go to Hall</button>
+  <button class="nav-btn" id="btn-living" onclick="loadScene('living')">Go to Living Room</button>
   <button class="nav-btn" id="btn-kitchen" onclick="loadScene('kitchen')">Go to Kitchen</button>
   <button class="nav-btn" id="btn-balcony" onclick="loadScene('balcony')">Go to Balcony</button>
   <button class="nav-btn" id="btn-mbed" onclick="loadScene('mbed')">Go to Master Bedroom</button>
@@ -119,7 +119,7 @@
     
     let viewer = pannellum.viewer('panorama', {
       default: {
-        firstScene: 'hall',
+        firstScene: 'living',
         autoLoad: true,
         showZoomCtrl: true,
         minPitch: -120,
@@ -130,9 +130,9 @@
         maxHfov: 80
       },
       scenes: {
-        hall: {
+        living: {
           type: 'equirectangular',
-          panorama: getImagePath('hall'),
+          panorama: getImagePath('living'),
           hotSpots: []  // No in-view navigation arrows
         },
         kitchen: {
@@ -155,7 +155,7 @@
     
     // Update navigation buttons: hide the button for the current scene
     function updateNavButtons(currentScene) {
-      const scenes = ['hall', 'kitchen', 'balcony', 'mbed'];
+      const scenes = ['living', 'kitchen', 'balcony', 'mbed'];
       scenes.forEach(scene => {
         document.getElementById('btn-' + scene).style.display = (scene === currentScene ? 'none' : 'inline-block');
       });
@@ -167,7 +167,7 @@
     }
     
     // Initialize navigation buttons for the first scene
-    updateNavButtons('hall');
+    updateNavButtons('living');
   </script>
 </body>
 </html>
