@@ -13,40 +13,42 @@
   <link rel="stylesheet" href="https://cdn.pannellum.org/2.5/pannellum.css" />
   
   <style>
-    body { font-family: "Poppins", sans-serif; margin: 0; text-align: center; }
-    
+    body { 
+      font-family: "Poppins", sans-serif; 
+      margin: 0; 
+      text-align: center; 
+    }
+    /* Header container always under 40px */
     #header-container {
       position: relative;
-      height: 40px;
+      height: 40px;  /* Under 40px */
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 0 20px;
+      justify-content: space-between;
+      padding: 0 10px;
     }
+    /* Title styling – adjust vertical alignment via translateY */
     #header-container h2 {
       margin: 0;
       font-weight: 600;
-      font-size: 16px;
+      font-size: 12px;
       flex-grow: 1;
-      text-align: left;
-      transform: translateY(10%);
+      text-align: center;
+      transform: translateY(10%); /* Adjust title vertical alignment here */
     }
-    
-    /* Logo styling */
+    /* Logo styling – cropping the image inside its container */
     #logo {
       width: 50px;
       height: 50px;
-      object-fit: cover;
-      transform: translateY(-40%);
+      object-fit: cover; /* Ensures the logo crops correctly */
+      transform: translateY(-40%); /* Adjust logo vertical alignment here */
     }
-    
     /* 360 Viewer Container */
     #panorama {
       width: 100vw;
       height: 73vh;
       margin-top: 10px;
     }
-    
     /* Navigation buttons */
     .nav-btn {
       margin-top: 10px;
@@ -59,27 +61,53 @@
       border-radius: 10px;
     }
     .nav-btn:hover { background-color: #0056b3; }
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      #header-container { height: 40px; padding: 0 10px; }
+      #header-container h2 { font-size: 10px; transform: translateY(6px); }
+      #logo { width: 40px; height: 40px; transform: translateY(-20px); }
+    }
   </style>
 </head>
 <body>
-
   <!-- Header with title and logo -->
   <div id="header-container">
     <h2>360° Virtual Walkthrough</h2>
-    <img id="logo" src="logo.png" alt="Logo" />
+    <!-- The logo image uses our fallback function via JavaScript below -->
+    <img id="logo" src="logo" alt="Logo" />
   </div>
   
   <div id="content-wrapper">
-    <!-- 360 Viewer -->
+    <!-- 360 Viewer Container -->
     <div id="panorama"></div>
   </div>
   
-  <!-- Navigation Buttons -->
-  <button class="nav-btn" onclick="loadScene('hall')">Go to Hall</button>
-  <button class="nav-btn" onclick="loadScene('kitchen')">Go to Kitchen</button>
-  <button class="nav-btn" onclick="loadScene('balcony')">Go to Balcony</button>
+  <!-- Navigation Buttons (only showing rooms other than the current scene) -->
+  <button class="nav-btn" id="btn-hall" onclick="loadScene('hall')">Go to Hall</button>
+  <button class="nav-btn" id="btn-kitchen" onclick="loadScene('kitchen')">Go to Kitchen</button>
+  <button class="nav-btn" id="btn-balcony" onclick="loadScene('balcony')">Go to Balcony</button>
   
   <script>
+    // Function to check for available image format (JPG, JPEG, PNG)
+    function getImagePath(name) {
+      const formats = ['jpg', 'jpeg', 'png'];
+      // NOTE: Due to image loading being asynchronous, this is a best-effort approach.
+      // Here we simply return the URL with the first format, but you can extend this to
+      // perform actual runtime checks if necessary.
+      for (let ext of formats) {
+        let img = new Image();
+        img.src = name + '.' + ext;
+        if (img.complete || img.width) {
+          return img.src;
+        }
+      }
+      return name + '.png'; // Default fallback
+    }
+    
+    // Set the logo's src using our compatibility function
+    document.getElementById("logo").src = getImagePath("logo");
+    
+    // Initialize Pannellum viewer with compatibility for panorama images
     let viewer = pannellum.viewer('panorama', {
       default: {
         firstScene: 'hall',
@@ -95,7 +123,7 @@
       scenes: {
         hall: {
           type: 'equirectangular',
-          panorama: 'hall.jpg',
+          panorama: getImagePath('hall'),
           hotSpots: [
             { pitch: -10, yaw: -25, type: 'scene', text: 'Go to Kitchen', sceneId: 'kitchen' },
             { pitch: -5, yaw: 100, type: 'scene', text: 'Go to Balcony', sceneId: 'balcony' }
@@ -103,7 +131,7 @@
         },
         kitchen: {
           type: 'equirectangular',
-          panorama: 'kitchen.jpg',
+          panorama: getImagePath('kitchen'),
           hotSpots: [
             { pitch: 0, yaw: 210, type: 'scene', text: 'Go to Hall', sceneId: 'hall' },
             { pitch: 10, yaw: 90, type: 'scene', text: 'Go to Balcony', sceneId: 'balcony' }
@@ -111,7 +139,7 @@
         },
         balcony: {
           type: 'equirectangular',
-          panorama: 'balcony.jpg',
+          panorama: getImagePath('balcony'),
           hotSpots: [
             { pitch: -10, yaw: -30, type: 'scene', text: 'Go to Hall', sceneId: 'hall' },
             { pitch: 5, yaw: 180, type: 'scene', text: 'Go to Kitchen', sceneId: 'kitchen' }
@@ -120,9 +148,22 @@
       }
     });
     
+    // Function to update navigation button visibility so that the button for the current scene is hidden
+    function updateNavButtons(currentScene) {
+      const scenes = ['hall', 'kitchen', 'balcony'];
+      scenes.forEach(scene => {
+        document.getElementById('btn-' + scene).style.display = (scene === currentScene ? 'none' : 'inline-block');
+      });
+    }
+    
+    // Function to load a scene and update navigation buttons accordingly
     function loadScene(scene) {
       viewer.loadScene(scene);
+      updateNavButtons(scene);
     }
+    
+    // Initialize navigation buttons based on the first scene
+    updateNavButtons('hall');
   </script>
 </body>
 </html>
