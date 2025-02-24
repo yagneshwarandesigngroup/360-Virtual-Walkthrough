@@ -1,164 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>360° Walkthrough | Yagneshwaran Design Group</title>
-  
-  <!-- Import Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
-  
-  <!-- Pannellum for 360° viewer (Using CDN) -->
-  <script src="https://cdn.pannellum.org/2.5/pannellum.js"></script>
-  <link rel="stylesheet" href="https://cdn.pannellum.org/2.5/pannellum.css" />
-  
-  <style>
-    body { font-family: "Poppins", sans-serif; margin: 0; text-align: center; }
-    
-    #header-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
-      height: 80px;
-      position: relative;
-    }
-    
-    #header-container h2 {
-      margin: 0;
-      font-weight: 600;
-      font-size: 16px;
-      flex-grow: 1;
-      text-align: left;
-        transform: translateY(10%); /* Fine-tune vertical alignment */
-    }
-    
-    /* Logo styling */
-    #logo {
-      height: 60px; /* Adjust the height of the logo */
-      width: auto;
-      position: absolute;
-      right: 20px;
-      top: 50%; /* Adjust vertical position */
-      transform: translateY(-40%); /* Fine-tune vertical alignment */
-    }
-    
-    /* 360 Viewer Container */
-    #panorama {
-      width: 100vw;
-      height: 73vh;
-      margin-top: 10px;
-    }
-    
-    /* Responsive Design for Mobile */
-    @media (max-width: 768px) {
-      #header-container {
-        height: 25px;
-        padding: 0 15px;
-      }
-      
-      #header-container h2 {
-        font-size: 12px;
-        line-height: 50px;
-      }
-      
-      #logo {
-        height: 50px; /* Adjust logo size for mobile */
-      }
-    }
-    
-    /* Navigation buttons */
-    .nav-btn {
-      margin-top: 10px;
-      padding: 5px 10px;
-      font-size: 8px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 10px;
-    }
-    .nav-btn:hover { background-color: #0056b3; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>360° Virtual Walkthrough</title>
+    <script src="https://pannellum.org/js/pannellum.js"></script>
+    <link rel="stylesheet" href="https://pannellum.org/css/pannellum.css">
+    <style>
+        body { margin: 0; overflow: hidden; }
+        #panorama { width: 100vw; height: 100vh; }
+        #header {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 90%;
+            max-width: 1200px;
+        }
+        #title {
+            font-size: 20px;
+            font-weight: bold;
+            transform: translateY(10%);
+        }
+        #logo {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            transform: translateY(-40%);
+        }
+        .nav-button {
+            position: absolute;
+            bottom: 20px;
+            padding: 10px 20px;
+            background: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #toKitchen { left: 30%; }
+        #toHall { left: 50%; }
+        #toBalcony { left: 70%; }
+    </style>
 </head>
 <body>
-
-  <!-- Header with title and logo -->
-  <div id="header-container">
-    <h2>360° Virtual Walkthrough</h2>
-    <img id="logo" src="logo.png" alt="Logo" onerror="this.onerror=null;this.src='logo.jpg';" />
-  </div>
-  
-  <div id="content-wrapper">
-    <!-- 360 Viewer -->
+    <div id="header">
+        <div id="title">360° Virtual Walkthrough</div>
+        <img id="logo" src="logo.jpg" alt="Logo">
+    </div>
     <div id="panorama"></div>
-  </div>
-  
-  <!-- Navigation Buttons -->
-  <button class="nav-btn" onclick="loadScene('hall')">Go to Hall</button>
-  <button class="nav-btn" onclick="loadScene('kitchen')">Go to Kitchen</button>
-  
-  <script>
-    function getValidImage(filename) {
-      const formats = ['png', 'jpg', 'jpeg'];
-      for (let ext of formats) {
-        let img = new Image();
-        img.src = `${filename}.${ext}`;
-        img.onload = () => {
-          document.getElementById(filename).src = img.src;
-        };
-      }
-    }
+    <button id="toKitchen" class="nav-button" onclick="switchScene('kitchen')">Go to Kitchen</button>
+    <button id="toHall" class="nav-button" onclick="switchScene('hall')">Go to Hall</button>
+    <button id="toBalcony" class="nav-button" onclick="switchScene('balcony')">Go to Balcony</button>
     
-    document.getElementById("logo").onerror = function() {
-      getValidImage("logo");
-    };
-    
-    let viewer = pannellum.viewer('panorama', {
-      default: {
-        firstScene: 'hall',
-        autoLoad: true,
-        showZoomCtrl: true,
-        minPitch: -120,
-        maxPitch: 120,
-        minYaw: -180,
-        maxYaw: 180,
-        minHfov: 30,
-        maxHfov: 80
-      },
-      scenes: {
-        hall: {
-          type: 'equirectangular',
-          panorama: 'hall.png',
-          hotSpots: [
-            {
-              pitch: -10,
-              yaw: -25,
-              type: 'scene',
-              text: 'Go to Kitchen',
-              sceneId: 'kitchen'
+    <script>
+        var viewer = pannellum.viewer('panorama', {
+            "default": {
+                "firstScene": "hall",
+                "author": "Your Name",
+                "sceneFadeDuration": 1000
+            },
+            "scenes": {
+                "hall": {
+                    "type": "equirectangular",
+                    "panorama": "hall.jpg",
+                    "hotSpots": [
+                        { "pitch": 0, "yaw": 30, "type": "scene", "text": "Go to Kitchen", "sceneId": "kitchen" },
+                        { "pitch": 0, "yaw": -30, "type": "scene", "text": "Go to Balcony", "sceneId": "balcony" }
+                    ]
+                },
+                "kitchen": {
+                    "type": "equirectangular",
+                    "panorama": "kitchen.jpg",
+                    "hotSpots": [
+                        { "pitch": 0, "yaw": 30, "type": "scene", "text": "Go to Hall", "sceneId": "hall" }
+                    ]
+                },
+                "balcony": {
+                    "type": "equirectangular",
+                    "panorama": "balcony.jpg",
+                    "hotSpots": [
+                        { "pitch": 0, "yaw": 30, "type": "scene", "text": "Go to Hall", "sceneId": "hall" }
+                    ]
+                }
             }
-          ]
-        },
-        kitchen: {
-          type: 'equirectangular',
-          panorama: 'kitchen.png',
-          hotSpots: [
-            {
-              pitch: 0,
-              yaw: 210,
-              type: 'scene',
-              text: 'Go to Hall',
-              sceneId: 'hall'
-            }
-          ]
+        });
+        function switchScene(scene) {
+            viewer.loadScene(scene);
         }
-      }
-    });
-    
-    function loadScene(scene) {
-      viewer.loadScene(scene);
-    }
-  </script>
+    </script>
 </body>
 </html>
