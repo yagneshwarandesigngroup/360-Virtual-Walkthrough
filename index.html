@@ -109,9 +109,17 @@
   </div>
   
   <script>
-    /* -------------------------------------------
+    /* ---------------------------------------------------
+       Mapping: Scene ID to File Base Name
+       For the living room, file name is "hall"
+    --------------------------------------------------- */
+    const fileMapping = {
+      "living": "hall"
+    };
+    
+    /* ---------------------------------------------------
        Logo Fallback (Synchronous)
-    ------------------------------------------- */
+    --------------------------------------------------- */
     function loadImageWithFallback(imgElement, baseName, formats) {
       let index = 0;
       function tryNext() {
@@ -124,16 +132,16 @@
     }
     loadImageWithFallback(document.getElementById("logo"), "logo", [".jpg", ".jpeg", ".png"]);
     
-    /* -------------------------------------------
+    /* ---------------------------------------------------
        Async Image Loader with Fallback
-    ------------------------------------------- */
+    --------------------------------------------------- */
     async function getCompatibleImageURL(baseName, formats) {
       for (const ext of formats) {
         const url = baseName + ext;
         try {
           await new Promise((resolve, reject) => {
             const img = new Image();
-            img.crossOrigin = "Anonymous"; // Ensure CORS is allowed if needed
+            img.crossOrigin = "Anonymous"; // needed for canvas preview if images are hosted elsewhere
             img.onload = resolve;
             img.onerror = reject;
             img.src = url;
@@ -143,28 +151,28 @@
           // Try next extension
         }
       }
-      // Return empty string if none found (or you could return a default URL)
       return "";
     }
     
-    // Helper functions to get URLs for panoramas
+    // Helper function to get panorama URLs
     async function getPanoramaURL(sceneName) {
-      return await getCompatibleImageURL(sceneName, [".jpg", ".jpeg", ".png"]);
+      // Use mapping: if sceneName exists in fileMapping, use that as the base file name.
+      const baseName = fileMapping[sceneName] || sceneName;
+      return await getCompatibleImageURL(baseName, [".jpg", ".jpeg", ".png"]);
     }
     
-    /* -------------------------------------------
+    /* ---------------------------------------------------
        Generate a Low-Quality Preview using Canvas
-    ------------------------------------------- */
+    --------------------------------------------------- */
     async function generatePreview(url, previewWidth = 60, previewHeight = 60) {
       return new Promise((resolve, reject) => {
         const img = new Image();
-        img.crossOrigin = "Anonymous"; // Ensure CORS is allowed if needed
+        img.crossOrigin = "Anonymous";
         img.onload = function() {
           const canvas = document.createElement('canvas');
           canvas.width = previewWidth;
           canvas.height = previewHeight;
           const ctx = canvas.getContext('2d');
-          // Draw the image scaled down to preview dimensions
           ctx.drawImage(img, 0, 0, previewWidth, previewHeight);
           resolve(canvas.toDataURL());
         };
@@ -175,12 +183,12 @@
       });
     }
     
-    /* -------------------------------------------
+    /* ---------------------------------------------------
        Initialize Pannellum Viewer
-    ------------------------------------------- */
+    --------------------------------------------------- */
     async function initViewer() {
       try {
-        const livingURL = await getPanoramaURL("hall");
+        const livingURL = await getPanoramaURL("living");
         const kitchenURL = await getPanoramaURL("kitchen");
         const balconyURL = await getPanoramaURL("balcony");
         const mbedURL = await getPanoramaURL("mbed");
@@ -200,7 +208,7 @@
           scenes: {
             living: {
               type: 'equirectangular',
-              panorama: hallURL,
+              panorama: livingURL,
               hotSpots: [] // No in-view navigation arrows
             },
             kitchen: {
@@ -226,22 +234,22 @@
     }
     initViewer();
     
-    /* -------------------------------------------
+    /* ---------------------------------------------------
        Initialize Bubble Previews
-    ------------------------------------------- */
+    --------------------------------------------------- */
     async function initBubbles() {
       const bubbles = document.querySelectorAll(".bubble");
       for (const bubble of bubbles) {
-        const scene = bubble.getAttribute("data-scene");
+        let scene = bubble.getAttribute("data-scene");
+        // Map "living" to "hall" if applicable
+        const baseName = fileMapping[scene] || scene;
         try {
-          // Get the full panorama URL and then generate a low-quality preview
           const panoURL = await getPanoramaURL(scene);
           const previewDataURL = await generatePreview(panoURL, 60, 60);
           bubble.querySelector("img").src = previewDataURL;
         } catch (error) {
           console.error("Error generating preview for", scene, error);
         }
-        // Add click handler to load the corresponding scene
         bubble.addEventListener("click", function() {
           if (window.viewer) {
             window.viewer.loadScene(scene);
