@@ -46,18 +46,25 @@
     /* 360 Viewer Container */
     #panorama {
       width: 100vw;
-      height: 80vh;
+      height: 72vh;
       margin-top: 10px;
     }
     /* Bubble Navigation Container */
     #bubble-container {
       position: fixed;
       bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 0;
+      right: 0;
       display: flex;
-      gap: 10px;
+      justify-content: space-evenly;
+      align-items: center;
       z-index: 100;
+    }
+    .bubble-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
     }
     .bubble {
       width: 60px;
@@ -65,34 +72,32 @@
       border-radius: 50%;
       overflow: hidden;
       border: 2px solid #007bff;
-      cursor: pointer;
-      transition: transform 0.3s ease;
       background: #fff;
-    }
-    .bubble:hover {
-      transform: scale(1.1);
-    }
-    /* Keyframes for bubble preview animation:
-       The image is scaled to 1.4 (zoomed in by 40%) and translated horizontally by 20% of its width.
-       'alternate-reverse' makes the animation start in the reverse direction and alternate each cycle.
-    */
-    @keyframes bubblePan {
-      0% { transform: scale(1.4) translateX(0%); }
-      100% { transform: scale(1.4) translateX(20%); }
     }
     .bubble img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      /* Animation: Zoom in (scale 1.8) and pan horizontally over 6 seconds */
       animation: bubblePan 6s linear infinite alternate-reverse;
+    }
+    @keyframes bubblePan {
+      0% { transform: scale(1.8) translateX(0%); }
+      100% { transform: scale(1.8) translateX(20%); }
+    }
+    .bubble-label {
+      margin-top: 5px;
+      font-weight: 700;
+      font-size: 10px;
+      color: #333;
     }
     /* Mobile adjustments */
     @media (max-width: 768px) {
       #header-container { height: 40px; padding: 0 10px; }
       #header-container h2 { font-size: 10px; transform: translateY(6px); }
       #logo { width: 80px; height: 40px; transform: translateY(5px); }
-      #bubble-container { gap: 5px; }
       .bubble { width: 50px; height: 50px; }
+      .bubble-label { font-size: 9px; }
     }
   </style>
 </head>
@@ -100,7 +105,6 @@
   <!-- Header with title and logo -->
   <div id="header-container">
     <h2>360° Virtual Walkthrough</h2>
-    <!-- The logo's src will be set dynamically via our fallback function -->
     <img id="logo" alt="Logo">
   </div>
   
@@ -111,19 +115,31 @@
   
   <!-- Bubble Navigation Container -->
   <div id="bubble-container">
-    <div class="bubble" data-scene="living"><img alt="Living Room Preview"></div>
-    <div class="bubble" data-scene="kitchen"><img alt="Kitchen Preview"></div>
-    <div class="bubble" data-scene="balcony"><img alt="Balcony Preview"></div>
-    <div class="bubble" data-scene="mbed"><img alt="Master Bedroom Preview"></div>
+    <div class="bubble-item" data-scene="living">
+      <div class="bubble"><img alt="Living Room Preview"></div>
+      <div class="bubble-label">Living Room</div>
+    </div>
+    <div class="bubble-item" data-scene="kitchen">
+      <div class="bubble"><img alt="Kitchen Preview"></div>
+      <div class="bubble-label">Kitchen</div>
+    </div>
+    <div class="bubble-item" data-scene="balcony">
+      <div class="bubble"><img alt="Balcony Preview"></div>
+      <div class="bubble-label">Balcony</div>
+    </div>
+    <div class="bubble-item" data-scene="mbed">
+      <div class="bubble"><img alt="Master Bedroom Preview"></div>
+      <div class="bubble-label">Master Bedroom</div>
+    </div>
   </div>
   
   <script>
     /* ---------------------------------------------------
        Mapping: Scene ID to File Base Name
-       For the living room, the file name is "hall"
+       For the living room, file name is "hall"
     --------------------------------------------------- */
     const fileMapping = { "living": "hall" };
-    
+
     /* ---------------------------------------------------
        Logo Fallback (Synchronous)
     --------------------------------------------------- */
@@ -138,7 +154,7 @@
       tryNext();
     }
     loadImageWithFallback(document.getElementById("logo"), "logo", [".jpg", ".jpeg", ".png"]);
-    
+
     /* ---------------------------------------------------
        Async Image Loader with Fallback
     --------------------------------------------------- */
@@ -160,13 +176,13 @@
       }
       return "";
     }
-    
+
     // Helper function to get panorama URL (using mapping for living room)
     async function getPanoramaURL(sceneName) {
       const baseName = fileMapping[sceneName] || sceneName;
       return await getCompatibleImageURL(baseName, [".jpg", ".jpeg", ".png"]);
     }
-    
+
     /* ---------------------------------------------------
        Generate a Low-Quality Preview using Canvas
     --------------------------------------------------- */
@@ -188,7 +204,7 @@
         img.src = url;
       });
     }
-    
+
     /* ---------------------------------------------------
        Initialize Pannellum Viewer
     --------------------------------------------------- */
@@ -198,7 +214,7 @@
         const kitchenURL = await getPanoramaURL("kitchen");
         const balconyURL = await getPanoramaURL("balcony");
         const mbedURL = await getPanoramaURL("mbed");
-        
+
         window.viewer = pannellum.viewer('panorama', {
           default: {
             firstScene: 'living',
@@ -215,7 +231,7 @@
             living: {
               type: 'equirectangular',
               panorama: livingURL,
-              hotSpots: []
+              hotSpots: [] // No in-view navigation arrows
             },
             kitchen: {
               type: 'equirectangular',
@@ -239,22 +255,22 @@
       }
     }
     initViewer();
-    
+
     /* ---------------------------------------------------
        Initialize Bubble Previews
     --------------------------------------------------- */
     async function initBubbles() {
-      const bubbles = document.querySelectorAll(".bubble");
-      for (const bubble of bubbles) {
-        const scene = bubble.getAttribute("data-scene");
+      const bubbleItems = document.querySelectorAll(".bubble-item");
+      for (const item of bubbleItems) {
+        const scene = item.getAttribute("data-scene");
         try {
           const panoURL = await getPanoramaURL(scene);
           const previewDataURL = await generatePreview(panoURL, 60, 60);
-          bubble.querySelector("img").src = previewDataURL;
+          item.querySelector(".bubble img").src = previewDataURL;
         } catch (error) {
           console.error("Error generating preview for", scene, error);
         }
-        bubble.addEventListener("click", function() {
+        item.addEventListener("click", function() {
           if (window.viewer) {
             window.viewer.loadScene(scene);
           }
