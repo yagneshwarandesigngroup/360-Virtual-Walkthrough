@@ -49,7 +49,7 @@
       height: 72vh;
       margin-top: 10px;
     }
-    /* Bubble Container (for preview navigation) */
+    /* Bubble Navigation Container */
     #bubble-container {
       position: fixed;
       bottom: 20px;
@@ -102,7 +102,6 @@
   
   <!-- Bubble Navigation Container -->
   <div id="bubble-container">
-    <!-- Each bubble corresponds to a room; preview images are loaded dynamically -->
     <div class="bubble" data-scene="living"><img alt="Living Room Preview"></div>
     <div class="bubble" data-scene="kitchen"><img alt="Kitchen Preview"></div>
     <div class="bubble" data-scene="balcony"><img alt="Balcony Preview"></div>
@@ -110,9 +109,9 @@
   </div>
   
   <script>
-    /* --------------------------------------------
-       Logo Fallback Function (Synchronous)
-    -------------------------------------------- */
+    /* -------------------------------
+       Logo Fallback (Synchronous)
+    ------------------------------- */
     function loadImageWithFallback(imgElement, baseName, formats) {
       let index = 0;
       function tryNext() {
@@ -125,42 +124,39 @@
     }
     loadImageWithFallback(document.getElementById("logo"), "logo", [".jpg", ".jpeg", ".png"]);
     
-    /* --------------------------------------------
-       Promise-based Fallback Image Loader
-    -------------------------------------------- */
-    function getCompatibleImageURL(baseName, formats) {
-      return new Promise((resolve, reject) => {
-        let index = 0;
-        function tryNext() {
-          if (index >= formats.length) {
-            reject(new Error("Image not found: " + baseName));
-            return;
-          }
-          const url = baseName + formats[index];
-          const img = new Image();
-          img.onload = function() { resolve(url); };
-          img.onerror = function() { index++; tryNext(); };
-          img.src = url;
+    /* -------------------------------
+       Async Image Loader with Fallback
+    ------------------------------- */
+    async function getCompatibleImageURL(baseName, formats) {
+      for (const ext of formats) {
+        const url = baseName + ext;
+        try {
+          await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => reject();
+            img.src = url;
+          });
+          return url;
+        } catch(e) {
+          // Continue to next extension
         }
-        tryNext();
-      });
+      }
+      // If no image found, return empty string or a default image URL
+      return "";
     }
     
-    /* --------------------------------------------
-       Helper Functions for Panorama and Preview URLs
-    -------------------------------------------- */
-    // For full-quality panorama images
-    function getPanoramaURL(sceneName) {
-      return getCompatibleImageURL(sceneName, [".jpg", ".jpeg", ".png"]);
+    // Helper functions to get URLs for panoramas and previews
+    async function getPanoramaURL(sceneName) {
+      return await getCompatibleImageURL(sceneName, [".jpg", ".jpeg", ".png"]);
     }
-    // For low-quality preview images (assumes filename pattern: sceneName_preview)
-    function getPreviewURL(sceneName) {
-      return getCompatibleImageURL(sceneName + "_preview", [".jpg", ".jpeg", ".png"]);
+    async function getPreviewURL(sceneName) {
+      return await getCompatibleImageURL(sceneName + "_preview", [".jpg", ".jpeg", ".png"]);
     }
     
-    /* --------------------------------------------
+    /* -------------------------------
        Initialize Pannellum Viewer
-    -------------------------------------------- */
+    ------------------------------- */
     async function initViewer() {
       try {
         const livingURL = await getPanoramaURL("living");
@@ -209,16 +205,18 @@
     }
     initViewer();
     
-    /* --------------------------------------------
+    /* -------------------------------
        Initialize Bubble Previews
-    -------------------------------------------- */
+    ------------------------------- */
     async function initBubbles() {
       const bubbles = document.querySelectorAll(".bubble");
       for (const bubble of bubbles) {
         const scene = bubble.getAttribute("data-scene");
         try {
           const previewURL = await getPreviewURL(scene);
-          bubble.querySelector("img").src = previewURL;
+          if (previewURL) {
+            bubble.querySelector("img").src = previewURL;
+          }
         } catch (error) {
           console.error("Error loading preview for", scene, error);
         }
