@@ -49,23 +49,41 @@
       height: 72vh;
       margin-top: 10px;
     }
-    /* Navigation buttons */
-    .nav-btn {
-      margin-top: 10px;
-      padding: 5px 10px;
-      font-size: 8px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 6px;
+    /* Bubble Container (for preview navigation) */
+    #bubble-container {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      z-index: 100;
     }
-    .nav-btn:hover { background-color: #0056b3; }
+    .bubble {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #007bff;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      background: #fff;
+    }
+    .bubble:hover {
+      transform: scale(1.1);
+    }
+    .bubble img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
     /* Mobile adjustments */
     @media (max-width: 768px) {
       #header-container { height: 40px; padding: 0 10px; }
       #header-container h2 { font-size: 10px; transform: translateY(6px); }
       #logo { width: 80px; height: 40px; transform: translateY(5px); }
+      #bubble-container { gap: 5px; }
+      .bubble { width: 50px; height: 50px; }
     }
   </style>
 </head>
@@ -82,16 +100,19 @@
     <div id="panorama"></div>
   </div>
   
-  <!-- Navigation Buttons (external navigation system) -->
-  <button class="nav-btn" id="btn-living" onclick="loadScene('living')">Go to Living Room</button>
-  <button class="nav-btn" id="btn-kitchen" onclick="loadScene('kitchen')">Go to Kitchen</button>
-  <button class="nav-btn" id="btn-balcony" onclick="loadScene('balcony')">Go to Balcony</button>
-  <button class="nav-btn" id="btn-mbed" onclick="loadScene('mbed')">Go to Master Bedroom</button>
+  <!-- Bubble Navigation Container -->
+  <div id="bubble-container">
+    <!-- Each bubble corresponds to a room; preview images are loaded dynamically -->
+    <div class="bubble" data-scene="living"><img alt="Living Room Preview"></div>
+    <div class="bubble" data-scene="kitchen"><img alt="Kitchen Preview"></div>
+    <div class="bubble" data-scene="balcony"><img alt="Balcony Preview"></div>
+    <div class="bubble" data-scene="mbed"><img alt="Master Bedroom Preview"></div>
+  </div>
   
   <script>
-    /* -------------------------------------------
-       Logo Fallback Function (synchronous)
-    ------------------------------------------- */
+    /* --------------------------------------------
+       Logo Fallback Function (Synchronous)
+    -------------------------------------------- */
     function loadImageWithFallback(imgElement, baseName, formats) {
       let index = 0;
       function tryNext() {
@@ -104,43 +125,49 @@
     }
     loadImageWithFallback(document.getElementById("logo"), "logo", [".jpg", ".jpeg", ".png"]);
     
-    /* -------------------------------------------
-       Panorama Image Loader with Fallback (Promise)
-    ------------------------------------------- */
+    /* --------------------------------------------
+       Promise-based Fallback Image Loader
+    -------------------------------------------- */
     function getCompatibleImageURL(baseName, formats) {
       return new Promise((resolve, reject) => {
         let index = 0;
         function tryNext() {
           if (index >= formats.length) {
-            reject(new Error("Image not found for " + baseName));
+            reject(new Error("Image not found: " + baseName));
             return;
           }
           const url = baseName + formats[index];
           const img = new Image();
-          img.onload = function() {
-            resolve(url);
-          };
-          img.onerror = function() {
-            index++;
-            tryNext();
-          };
+          img.onload = function() { resolve(url); };
+          img.onerror = function() { index++; tryNext(); };
           img.src = url;
         }
         tryNext();
       });
     }
     
-    /* -------------------------------------------
-       Initialize Pannellum Viewer after Images Load
-    ------------------------------------------- */
+    /* --------------------------------------------
+       Helper Functions for Panorama and Preview URLs
+    -------------------------------------------- */
+    // For full-quality panorama images
+    function getPanoramaURL(sceneName) {
+      return getCompatibleImageURL(sceneName, [".jpg", ".jpeg", ".png"]);
+    }
+    // For low-quality preview images (assumes filename pattern: sceneName_preview)
+    function getPreviewURL(sceneName) {
+      return getCompatibleImageURL(sceneName + "_preview", [".jpg", ".jpeg", ".png"]);
+    }
+    
+    /* --------------------------------------------
+       Initialize Pannellum Viewer
+    -------------------------------------------- */
     async function initViewer() {
       try {
-        const livingURL = await getCompatibleImageURL("living", [".jpg", ".jpeg", ".png"]);
-        const kitchenURL = await getCompatibleImageURL("kitchen", [".jpg", ".jpeg", ".png"]);
-        const balconyURL = await getCompatibleImageURL("balcony", [".jpg", ".jpeg", ".png"]);
-        const mbedURL = await getCompatibleImageURL("mbed", [".jpg", ".jpeg", ".png"]);
+        const livingURL = await getPanoramaURL("living");
+        const kitchenURL = await getPanoramaURL("kitchen");
+        const balconyURL = await getPanoramaURL("balcony");
+        const mbedURL = await getPanoramaURL("mbed");
         
-        // Initialize the viewer with the resolved image URLs
         window.viewer = pannellum.viewer('panorama', {
           default: {
             firstScene: 'living',
@@ -155,4 +182,54 @@
           },
           scenes: {
             living: {
-              type: 'e
+              type: 'equirectangular',
+              panorama: livingURL,
+              hotSpots: [] // No in-view navigation arrows
+            },
+            kitchen: {
+              type: 'equirectangular',
+              panorama: kitchenURL,
+              hotSpots: []
+            },
+            balcony: {
+              type: 'equirectangular',
+              panorama: balconyURL,
+              hotSpots: []
+            },
+            mbed: {
+              type: 'equirectangular',
+              panorama: mbedURL,
+              hotSpots: []
+            }
+          }
+        });
+      } catch (error) {
+        console.error("Error initializing viewer:", error);
+      }
+    }
+    initViewer();
+    
+    /* --------------------------------------------
+       Initialize Bubble Previews
+    -------------------------------------------- */
+    async function initBubbles() {
+      const bubbles = document.querySelectorAll(".bubble");
+      for (const bubble of bubbles) {
+        const scene = bubble.getAttribute("data-scene");
+        try {
+          const previewURL = await getPreviewURL(scene);
+          bubble.querySelector("img").src = previewURL;
+        } catch (error) {
+          console.error("Error loading preview for", scene, error);
+        }
+        bubble.addEventListener("click", function() {
+          if (window.viewer) {
+            window.viewer.loadScene(scene);
+          }
+        });
+      }
+    }
+    initBubbles();
+  </script>
+</body>
+</html>
