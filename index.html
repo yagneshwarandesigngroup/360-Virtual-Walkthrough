@@ -109,9 +109,9 @@
   </div>
   
   <script>
-    /* -------------------------------
+    /* -------------------------------------------
        Logo Fallback (Synchronous)
-    ------------------------------- */
+    ------------------------------------------- */
     function loadImageWithFallback(imgElement, baseName, formats) {
       let index = 0;
       function tryNext() {
@@ -124,39 +124,60 @@
     }
     loadImageWithFallback(document.getElementById("logo"), "logo", [".jpg", ".jpeg", ".png"]);
     
-    /* -------------------------------
+    /* -------------------------------------------
        Async Image Loader with Fallback
-    ------------------------------- */
+    ------------------------------------------- */
     async function getCompatibleImageURL(baseName, formats) {
       for (const ext of formats) {
         const url = baseName + ext;
         try {
           await new Promise((resolve, reject) => {
             const img = new Image();
-            img.onload = () => resolve();
-            img.onerror = () => reject();
+            img.crossOrigin = "Anonymous"; // Ensure CORS is allowed if needed
+            img.onload = resolve;
+            img.onerror = reject;
             img.src = url;
           });
           return url;
         } catch(e) {
-          // Continue to next extension
+          // Try next extension
         }
       }
-      // If no image found, return empty string or a default image URL
+      // Return empty string if none found (or you could return a default URL)
       return "";
     }
     
-    // Helper functions to get URLs for panoramas and previews
+    // Helper functions to get URLs for panoramas
     async function getPanoramaURL(sceneName) {
       return await getCompatibleImageURL(sceneName, [".jpg", ".jpeg", ".png"]);
     }
-    async function getPreviewURL(sceneName) {
-      return await getCompatibleImageURL(sceneName + "_preview", [".jpg", ".jpeg", ".png"]);
+    
+    /* -------------------------------------------
+       Generate a Low-Quality Preview using Canvas
+    ------------------------------------------- */
+    async function generatePreview(url, previewWidth = 60, previewHeight = 60) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous"; // Ensure CORS is allowed if needed
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          canvas.width = previewWidth;
+          canvas.height = previewHeight;
+          const ctx = canvas.getContext('2d');
+          // Draw the image scaled down to preview dimensions
+          ctx.drawImage(img, 0, 0, previewWidth, previewHeight);
+          resolve(canvas.toDataURL());
+        };
+        img.onerror = function() {
+          reject(new Error("Preview generation failed for " + url));
+        };
+        img.src = url;
+      });
     }
     
-    /* -------------------------------
+    /* -------------------------------------------
        Initialize Pannellum Viewer
-    ------------------------------- */
+    ------------------------------------------- */
     async function initViewer() {
       try {
         const livingURL = await getPanoramaURL("hall");
@@ -205,21 +226,22 @@
     }
     initViewer();
     
-    /* -------------------------------
+    /* -------------------------------------------
        Initialize Bubble Previews
-    ------------------------------- */
+    ------------------------------------------- */
     async function initBubbles() {
       const bubbles = document.querySelectorAll(".bubble");
       for (const bubble of bubbles) {
         const scene = bubble.getAttribute("data-scene");
         try {
-          const previewURL = await getPreviewURL(scene);
-          if (previewURL) {
-            bubble.querySelector("img").src = previewURL;
-          }
+          // Get the full panorama URL and then generate a low-quality preview
+          const panoURL = await getPanoramaURL(scene);
+          const previewDataURL = await generatePreview(panoURL, 60, 60);
+          bubble.querySelector("img").src = previewDataURL;
         } catch (error) {
-          console.error("Error loading preview for", scene, error);
+          console.error("Error generating preview for", scene, error);
         }
+        // Add click handler to load the corresponding scene
         bubble.addEventListener("click", function() {
           if (window.viewer) {
             window.viewer.loadScene(scene);
