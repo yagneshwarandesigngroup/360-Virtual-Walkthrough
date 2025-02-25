@@ -49,86 +49,23 @@
       height: 72vh;
       margin-top: 10px;
     }
-    /* Radial Menu Container */
-    #radial-menu {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 200px;
-      height: 200px;
-      pointer-events: none;
-    }
-    /* Central Toggle Button */
-    #menu-toggle {
-      position: absolute;
-      width: 50px;
-      height: 50px;
+    /* Navigation buttons */
+    .nav-btn {
+      margin-top: 10px;
+      padding: 5px 10px;
+      font-size: 8px;
       background-color: #007bff;
       color: white;
-      border-radius: 50%;
-      line-height: 50px;
-      text-align: center;
+      border: none;
       cursor: pointer;
-      z-index: 2;
-      left: 50%;
-      transform: translateX(-50%);
-      pointer-events: auto;
+      border-radius: 6px;
     }
-    /* Radial Menu Options */
-    .menu-option {
-      position: absolute;
-      width: 40px;
-      height: 40px;
-      background-color: #28a745;
-      color: white;
-      border-radius: 50%;
-      line-height: 40px;
-      text-align: center;
-      pointer-events: auto;
-      opacity: 0;
-      transition: all 0.3s ease;
-      font-size: 10px;
-      cursor: pointer;
-      z-index: 1;
-    }
-    /* When open, show options */
-    #radial-menu.open .menu-option {
-      opacity: 1;
-    }
-    /* Position options radially */
-    /* Top (Living Room) */
-    #radial-menu .menu-option[data-scene="living"] {
-      top: 0;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-    /* Right (Kitchen) */
-    #radial-menu .menu-option[data-scene="kitchen"] {
-      top: 50%;
-      right: 0;
-      transform: translate(50%, -50%);
-    }
-    /* Bottom (Balcony) */
-    #radial-menu .menu-option[data-scene="balcony"] {
-      bottom: 0;
-      left: 50%;
-      transform: translate(-50%, 50%);
-    }
-    /* Left (Master Bedroom) */
-    #radial-menu .menu-option[data-scene="mbed"] {
-      top: 50%;
-      left: 0;
-      transform: translate(-50%, -50%);
-    }
+    .nav-btn:hover { background-color: #0056b3; }
     /* Mobile adjustments */
     @media (max-width: 768px) {
       #header-container { height: 40px; padding: 0 10px; }
       #header-container h2 { font-size: 10px; transform: translateY(6px); }
       #logo { width: 80px; height: 40px; transform: translateY(5px); }
-      #radial-menu { width: 150px; height: 150px; bottom: 15px; }
-      #menu-toggle { width: 40px; height: 40px; line-height: 40px; }
-      .menu-option { width: 35px; height: 35px; line-height: 35px; font-size: 9px; }
     }
   </style>
 </head>
@@ -136,6 +73,7 @@
   <!-- Header with title and logo -->
   <div id="header-container">
     <h2>360° Virtual Walkthrough</h2>
+    <!-- The logo's src will be set dynamically via our fallback function -->
     <img id="logo" alt="Logo">
   </div>
   
@@ -144,17 +82,16 @@
     <div id="panorama"></div>
   </div>
   
-  <!-- Radial Menu for Navigation -->
-  <div id="radial-menu">
-    <div id="menu-toggle">Menu</div>
-    <div class="menu-option" data-scene="living">Living</div>
-    <div class="menu-option" data-scene="kitchen">Kitchen</div>
-    <div class="menu-option" data-scene="balcony">Balcony</div>
-    <div class="menu-option" data-scene="mbed">MBed</div>
-  </div>
+  <!-- Navigation Buttons (external navigation system) -->
+  <button class="nav-btn" id="btn-living" onclick="loadScene('living')">Go to Living Room</button>
+  <button class="nav-btn" id="btn-kitchen" onclick="loadScene('kitchen')">Go to Kitchen</button>
+  <button class="nav-btn" id="btn-balcony" onclick="loadScene('balcony')">Go to Balcony</button>
+  <button class="nav-btn" id="btn-mbed" onclick="loadScene('mbed')">Go to Master Bedroom</button>
   
   <script>
-    // Function to load an image with fallback for multiple formats
+    /* -------------------------------------------
+       Logo Fallback Function (synchronous)
+    ------------------------------------------- */
     function loadImageWithFallback(imgElement, baseName, formats) {
       let index = 0;
       function tryNext() {
@@ -165,81 +102,57 @@
       imgElement.onerror = tryNext;
       tryNext();
     }
-    
-    // Load the logo using fallback: tries .jpg, then .jpeg, then .png
     loadImageWithFallback(document.getElementById("logo"), "logo", [".jpg", ".jpeg", ".png"]);
     
-    // Function to get an image path for panorama images (best-effort approach)
-    function getImagePath(name) {
-      const formats = ['.jpg', '.jpeg', '.png'];
-      // Here we simply return the URL with the first format.
-      return name + formats[0];
-    }
-    
-    // Initialize Pannellum viewer
-    let viewer = pannellum.viewer('panorama', {
-      default: {
-        firstScene: 'living',
-        autoLoad: true,
-        showZoomCtrl: true,
-        minPitch: -120,
-        maxPitch: 120,
-        minYaw: -180,
-        maxYaw: 180,
-        minHfov: 30,
-        maxHfov: 80
-      },
-      scenes: {
-        living: {
-          type: 'equirectangular',
-          panorama: getImagePath('living'),
-          hotSpots: []  // No in-view navigation arrows
-        },
-        kitchen: {
-          type: 'equirectangular',
-          panorama: getImagePath('kitchen'),
-          hotSpots: []
-        },
-        balcony: {
-          type: 'equirectangular',
-          panorama: getImagePath('balcony'),
-          hotSpots: []
-        },
-        mbed: {
-          type: 'equirectangular',
-          panorama: getImagePath('mbed'),
-          hotSpots: []
+    /* -------------------------------------------
+       Panorama Image Loader with Fallback (Promise)
+    ------------------------------------------- */
+    function getCompatibleImageURL(baseName, formats) {
+      return new Promise((resolve, reject) => {
+        let index = 0;
+        function tryNext() {
+          if (index >= formats.length) {
+            reject(new Error("Image not found for " + baseName));
+            return;
+          }
+          const url = baseName + formats[index];
+          const img = new Image();
+          img.onload = function() {
+            resolve(url);
+          };
+          img.onerror = function() {
+            index++;
+            tryNext();
+          };
+          img.src = url;
         }
-      }
-    });
-    
-    // Function to load a scene and update the radial menu state
-    function loadScene(scene) {
-      viewer.loadScene(scene);
-      closeRadialMenu();
-    }
-    
-    // Radial Menu Toggle Logic
-    const radialMenu = document.getElementById("radial-menu");
-    const menuToggle = document.getElementById("menu-toggle");
-    
-    menuToggle.addEventListener("click", function() {
-      radialMenu.classList.toggle("open");
-    });
-    
-    // Close the radial menu after a selection is made
-    function closeRadialMenu() {
-      radialMenu.classList.remove("open");
-    }
-    
-    // Add click event listeners to each menu option
-    const menuOptions = document.querySelectorAll(".menu-option");
-    menuOptions.forEach(option => {
-      option.addEventListener("click", function() {
-        const scene = option.getAttribute("data-scene");
-        loadScene(scene);
+        tryNext();
       });
-    });
-  </script>
-</body>
-</html>
+    }
+    
+    /* -------------------------------------------
+       Initialize Pannellum Viewer after Images Load
+    ------------------------------------------- */
+    async function initViewer() {
+      try {
+        const livingURL = await getCompatibleImageURL("living", [".jpg", ".jpeg", ".png"]);
+        const kitchenURL = await getCompatibleImageURL("kitchen", [".jpg", ".jpeg", ".png"]);
+        const balconyURL = await getCompatibleImageURL("balcony", [".jpg", ".jpeg", ".png"]);
+        const mbedURL = await getCompatibleImageURL("mbed", [".jpg", ".jpeg", ".png"]);
+        
+        // Initialize the viewer with the resolved image URLs
+        window.viewer = pannellum.viewer('panorama', {
+          default: {
+            firstScene: 'living',
+            autoLoad: true,
+            showZoomCtrl: true,
+            minPitch: -120,
+            maxPitch: 120,
+            minYaw: -180,
+            maxYaw: 180,
+            minHfov: 30,
+            maxHfov: 80
+          },
+          scenes: {
+            living: {
+              type: 'e
