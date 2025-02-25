@@ -83,7 +83,7 @@
     }
     @keyframes bubblePan {
       0% { transform: scale(3) translateX(0%); }
-      100% { transform: scale(3) translateX(100%); }
+      100% { transform: scale(3) translateX(20%); }
     }
     .bubble-label {
       margin-top: 5px;
@@ -188,7 +188,7 @@
        Generate a Low-Quality Preview using Canvas
        (Now using 72x72 for a 20% increase in quality)
     --------------------------------------------------- */
-    async function generatePreview(url, previewWidth = 72, previewHeight = 72) {
+    async function generatePreview(url, previewWidth = 100, previewHeight = 100) {
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = "Anonymous";
