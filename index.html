@@ -159,7 +159,7 @@
     ------------------------------- */
     async function initViewer() {
       try {
-        const livingURL = await getPanoramaURL("living");
+        const livingURL = await getPanoramaURL("hall");
         const kitchenURL = await getPanoramaURL("kitchen");
         const balconyURL = await getPanoramaURL("balcony");
         const mbedURL = await getPanoramaURL("mbed");
@@ -179,7 +179,7 @@
           scenes: {
             living: {
               type: 'equirectangular',
-              panorama: hallURL,
+              panorama: livingURL,
               hotSpots: [] // No in-view navigation arrows
             },
             kitchen: {
