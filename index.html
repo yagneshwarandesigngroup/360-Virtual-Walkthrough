@@ -72,16 +72,19 @@
     .bubble:hover {
       transform: scale(1.1);
     }
-    /* Keyframes for spinning like a globe */
-    @keyframes spin {
-      from { transform: rotateY(0deg); }
-      to { transform: rotateY(360deg); }
+    /* Keyframes for bubble preview animation:
+       The image is scaled to 1.4 (zoomed in by 40%) and translated horizontally by 20% of its width.
+       'alternate-reverse' makes the animation start in the reverse direction and alternate each cycle.
+    */
+    @keyframes bubblePan {
+      0% { transform: scale(1.4) translateX(0%); }
+      100% { transform: scale(1.4) translateX(20%); }
     }
     .bubble img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      animation: spin 20s linear infinite;
+      animation: bubblePan 30s linear infinite alternate-reverse;
     }
     /* Mobile adjustments */
     @media (max-width: 768px) {
@@ -117,11 +120,9 @@
   <script>
     /* ---------------------------------------------------
        Mapping: Scene ID to File Base Name
-       For the living room, file name is "hall"
+       For the living room, the file name is "hall"
     --------------------------------------------------- */
-    const fileMapping = {
-      "living": "hall"
-    };
+    const fileMapping = { "living": "hall" };
     
     /* ---------------------------------------------------
        Logo Fallback (Synchronous)
@@ -160,7 +161,7 @@
       return "";
     }
     
-    // Helper function to get panorama URLs (uses mapping for living scene)
+    // Helper function to get panorama URL (using mapping for living room)
     async function getPanoramaURL(sceneName) {
       const baseName = fileMapping[sceneName] || sceneName;
       return await getCompatibleImageURL(baseName, [".jpg", ".jpeg", ".png"]);
@@ -214,7 +215,7 @@
             living: {
               type: 'equirectangular',
               panorama: livingURL,
-              hotSpots: [] // No in-view navigation arrows
+              hotSpots: []
             },
             kitchen: {
               type: 'equirectangular',
@@ -245,8 +246,7 @@
     async function initBubbles() {
       const bubbles = document.querySelectorAll(".bubble");
       for (const bubble of bubbles) {
-        let scene = bubble.getAttribute("data-scene");
-        const baseName = fileMapping[scene] || scene;
+        const scene = bubble.getAttribute("data-scene");
         try {
           const panoURL = await getPanoramaURL(scene);
           const previewDataURL = await generatePreview(panoURL, 60, 60);
