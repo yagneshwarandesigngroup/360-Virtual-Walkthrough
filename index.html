@@ -32,9 +32,10 @@
       justify-content: center;
       z-index: 200;
     }
+    /* Increased logo size (50% larger) for the loading screen */
     #loading-logo {
-      width: 100px;
-      height: 50px;
+      width: 150px;
+      height: 75px;
       object-fit: cover;
       margin-bottom: 20px;
     }
@@ -103,8 +104,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      /* Animation: Zoom in and pan horizontally over 6 sec 
-         Adjusted to pan from 0% to 44% so the image remains inside the bubble */
+      /* Animation: full quality image is zoomed in and pans horizontally over 6 seconds */
       animation: bubblePan 6s linear infinite alternate-reverse;
     }
     @keyframes bubblePan {
@@ -122,11 +122,10 @@
       #header-container { height: 40px; padding: 0 10px; }
       #header-container h2 { font-size: 10px; transform: translateY(6px); }
       #logo { width: 80px; height: 40px; transform: translateY(5px); }
-      #bubble-container { gap: 5px; }
+      #loading-logo { width: 120px; height: 60px; }
+      #loading-text { font-size: 16px; }
       .bubble { width: 50px; height: 50px; }
       .bubble-label { font-size: 9px; }
-      #loading-logo { width: 80px; height: 40px; }
-      #loading-text { font-size: 16px; }
     }
   </style>
 </head>
@@ -188,7 +187,7 @@
       imgElement.onerror = tryNext;
       tryNext();
     }
-    // Load logo for both header and loading screen
+    // Load logo for header and loading screen
     loadImageWithFallback(document.getElementById("logo"), "logo", [".jpg", ".jpeg", ".png"]);
     loadImageWithFallback(document.getElementById("loading-logo"), "logo", [".jpg", ".jpeg", ".png"]);
 
@@ -218,29 +217,6 @@
     async function getPanoramaURL(sceneName) {
       const baseName = fileMapping[sceneName] || sceneName;
       return await getCompatibleImageURL(baseName, [".jpg", ".jpeg", ".png"]);
-    }
-
-    /* ---------------------------------------------------
-       Generate a Low-Quality Preview using Canvas
-       (Now using 72x72 for a 20% quality increase, output as JPEG at 80% quality)
-    --------------------------------------------------- */
-    async function generatePreview(url, previewWidth = 72, previewHeight = 72) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          canvas.width = previewWidth;
-          canvas.height = previewHeight;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, previewWidth, previewHeight);
-          resolve(canvas.toDataURL('image/jpeg', 0.8));
-        };
-        img.onerror = function() {
-          reject(new Error("Preview generation failed for " + url));
-        };
-        img.src = url;
-      });
     }
 
     /* ---------------------------------------------------
@@ -298,18 +274,18 @@
     initViewer();
 
     /* ---------------------------------------------------
-       Initialize Bubble Previews
+       Initialize Bubble Previews (Using Full-Quality Image)
     --------------------------------------------------- */
     async function initBubbles() {
       const bubbleItems = document.querySelectorAll(".bubble-item");
       for (const item of bubbleItems) {
         const scene = item.getAttribute("data-scene");
         try {
+          // Use full-quality image directly for the bubble preview
           const panoURL = await getPanoramaURL(scene);
-          const previewDataURL = await generatePreview(panoURL, 72, 72);
-          item.querySelector(".bubble img").src = previewDataURL;
+          item.querySelector(".bubble img").src = panoURL;
         } catch (error) {
-          console.error("Error generating preview for", scene, error);
+          console.error("Error loading full-quality preview for", scene, error);
         }
         item.addEventListener("click", function() {
           if (window.viewer) {
