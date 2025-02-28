@@ -117,14 +117,13 @@
       align-items: center;
       cursor: pointer;
     }
-    /* Globe wrapper for 3D sphere effect */
+    /* Globe wrapper for bubble preview */
     .globe-wrapper {
       width: 60px;
       height: 60px;
       border-radius: 50%;
       overflow: hidden;
       background: #fff;
-      /* Three.js canvas will fill this container */
     }
     .bubble-label {
       margin-top: 5px;
@@ -288,8 +287,8 @@
     }
 
     /* ---------------------------------------------------
-       Create a 3D Globe in a Bubble using Three.js with Custom Shader
-       The sphere's radius oscillates between concave and convex.
+       Create a 3D Globe in a Bubble using Three.js
+       (Basic spinning sphere without distortion)
     --------------------------------------------------- */
     function createGlobeInBubble(container, imageURL) {
       const width = container.clientWidth;
@@ -301,48 +300,20 @@
       
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
-      camera.position.z = 70;  // zoom out
+      camera.position.z = 70;
       
-      // Create sphere geometry
       const geometry = new THREE.SphereGeometry(25, 32, 32);
       
       const textureLoader = new THREE.TextureLoader();
       textureLoader.crossOrigin = "Anonymous";
       textureLoader.load(imageURL, function(texture) {
-        const uniforms = {
-          uTime: { value: 0.0 },
-          uTexture: { value: texture },
-          uBaseRadius: { value: 25.0 },
-          uAmplitude: { value: -0.5 } // When sin(uTime)=1, radius becomes 25*(1-0.5)=12.5 (concave); when sin(uTime)=-1, 25*(1+0.5)=37.5 (convex)
-        };
-        const material = new THREE.ShaderMaterial({
-          uniforms: uniforms,
-          vertexShader: `
-            uniform float uTime;
-            uniform float uBaseRadius;
-            uniform float uAmplitude;
-            varying vec2 vUv;
-            void main() {
-              vUv = uv;
-              float factor = 1.0 + uAmplitude * sin(uTime);
-              vec3 newPos = normalize(position) * (uBaseRadius * factor);
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
-            }
-          `,
-          fragmentShader: `
-            uniform sampler2D uTexture;
-            varying vec2 vUv;
-            void main() {
-              gl_FragColor = texture2D(uTexture, vUv);
-            }
-          `
-        });
+        const material = new THREE.MeshBasicMaterial({ map: texture });
         const sphere = new THREE.Mesh(geometry, material);
         scene.add(sphere);
         
         function animate() {
           requestAnimationFrame(animate);
-          uniforms.uTime.value += 0.005; // slower speed
+          sphere.rotation.y += 0.005;
           renderer.render(scene, camera);
         }
         animate();
@@ -359,6 +330,7 @@
         try {
           const panoURL = await getPanoramaURL(scene);
           const globeContainer = item.querySelector(".globe-wrapper");
+          // Clear any existing content and create the 3D globe preview
           globeContainer.innerHTML = "";
           createGlobeInBubble(globeContainer, panoURL);
         } catch (error) {
@@ -377,6 +349,7 @@
     --------------------------------------------------- */
     async function initAll() {
       await Promise.all([initViewer(), initBubbles()]);
+      // Hide the loading screen once everything is fully loaded
       document.getElementById("loading-screen").style.display = "none";
     }
     initAll();
