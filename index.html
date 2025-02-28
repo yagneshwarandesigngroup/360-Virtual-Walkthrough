@@ -25,10 +25,14 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: #fff; /* white background */
       z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #fff;
     }
-    /* Loading Background Image with 25% opacity */
+    /* Loading background image with 25% opacity overlay */
     #loading-bg {
       position: absolute;
       top: 0;
@@ -38,9 +42,9 @@
       background: url('loading.jpg') center center no-repeat;
       background-size: cover;
       opacity: 0.25;
-      z-index: 1;
+      z-index: -1;
     }
-    /* Loading Content: logo and text on top */
+    /* Loading content */
     #loading-content {
       position: relative;
       z-index: 2;
@@ -48,9 +52,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100%;
     }
-    /* Increased logo size for the loading screen (50% larger than original 150px -> 225px width) */
+    /* Increased logo size for the loading screen (50% larger than original 150px -> 225px becomes 225px; we now increase by 50% from 150px to 225px) */
     #loading-logo {
       width: 225px;
       height: auto;
@@ -104,36 +107,46 @@
       align-items: center;
       z-index: 150;
     }
-    .bubble-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      cursor: pointer;
-    }
-    .bubble {
+    /* Globe Wrapper for bubble preview */
+    .globe-wrapper {
       width: 60px;
       height: 60px;
       border-radius: 50%;
+      background: radial-gradient(circle, #fff 60%, #007bff 100%);
+      padding: 4px;  /* Creates the globe-like border */
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+      perspective: 100px;
+    }
+    /* Bubble element inside the globe wrapper */
+    .globe-wrapper .bubble {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
       overflow: hidden;
-      border: 2px solid #007bff;
-      background: #fff;
+      transform-style: preserve-3d;
+      animation: globeSpin 6s linear infinite alternate-reverse;
+    }
+    @keyframes globeSpin {
+      0% { transform: rotateY(0deg); }
+      100% { transform: rotateY(360deg); }
     }
     .bubble img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      /* Animation: full-quality image is zoomed in and pans horizontally over 6 sec */
-      animation: bubblePan 6s linear infinite alternate-reverse;
-    }
-    @keyframes bubblePan {
-      0% { transform: scale(1.8) translateX(0%); }
-      100% { transform: scale(1.8) translateX(20%); }
     }
     .bubble-label {
       margin-top: 5px;
       font-weight: 700;
       font-size: 14px;
       color: #333;
+    }
+    /* Bubble item layout */
+    .bubble-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
     }
     /* Mobile adjustments */
     @media (max-width: 768px) {
@@ -142,7 +155,7 @@
       #logo { width: 80px; height: 40px; transform: translateY(5px); }
       #loading-logo { width: 150px; }
       #loading-text { font-size: 16px; }
-      .bubble { width: 50px; height: 50px; }
+      .globe-wrapper { width: 50px; height: 50px; }
       .bubble-label { font-size: 9px; }
     }
   </style>
@@ -171,19 +184,27 @@
   <!-- Bubble Navigation Container -->
   <div id="bubble-container">
     <div class="bubble-item" data-scene="living">
-      <div class="bubble"><img alt="Living Room Preview"></div>
+      <div class="globe-wrapper">
+        <div class="bubble"><img alt="Living Room Preview"></div>
+      </div>
       <div class="bubble-label">Living Room</div>
     </div>
     <div class="bubble-item" data-scene="kitchen">
-      <div class="bubble"><img alt="Kitchen Preview"></div>
+      <div class="globe-wrapper">
+        <div class="bubble"><img alt="Kitchen Preview"></div>
+      </div>
       <div class="bubble-label">Kitchen</div>
     </div>
     <div class="bubble-item" data-scene="balcony">
-      <div class="bubble"><img alt="Balcony Preview"></div>
+      <div class="globe-wrapper">
+        <div class="bubble"><img alt="Balcony Preview"></div>
+      </div>
       <div class="bubble-label">Balcony</div>
     </div>
     <div class="bubble-item" data-scene="mbed">
-      <div class="bubble"><img alt="Master Bedroom Preview"></div>
+      <div class="globe-wrapper">
+        <div class="bubble"><img alt="Master Bedroom Preview"></div>
+      </div>
       <div class="bubble-label">Master Bedroom</div>
     </div>
   </div>
