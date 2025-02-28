@@ -12,9 +12,6 @@
   <script src="https://cdn.pannellum.org/2.5/pannellum.js"></script>
   <link rel="stylesheet" href="https://cdn.pannellum.org/2.5/pannellum.css" />
   
-  <!-- Three.js Library for 3D Globe in bubbles -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  
   <style>
     body { 
       font-family: "Poppins", sans-serif; 
@@ -28,14 +25,10 @@
       left: 0;
       width: 100%;
       height: 100%;
+      background-color: #fff; /* white background */
       z-index: 200;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background-color: #fff;
     }
-    /* Background image for loading screen with 25% opacity */
+    /* Loading Background Image with 25% opacity */
     #loading-bg {
       position: absolute;
       top: 0;
@@ -45,9 +38,9 @@
       background: url('loading.jpg') center center no-repeat;
       background-size: cover;
       opacity: 0.25;
-      z-index: -1;
+      z-index: 1;
     }
-    /* Loading content: logo and text */
+    /* Loading Content: logo and text on top */
     #loading-content {
       position: relative;
       z-index: 2;
@@ -55,8 +48,9 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      height: 100%;
     }
-    /* Increased logo size for loading screen (225px wide) */
+    /* Increased logo size for the loading screen (50% larger than original 150px -> 225px width) */
     #loading-logo {
       width: 225px;
       height: auto;
@@ -77,7 +71,7 @@
       justify-content: space-between;
       padding: 0 10px;
     }
-    /* Title styling – aligned to the left */
+    /* Title styling – aligned to the left, vertical adjustment via translateY */
     #header-container h2 {
       margin: 0;
       font-weight: 600;
@@ -86,7 +80,7 @@
       text-align: left;
       transform: translateY(10%);
     }
-    /* Logo styling for header */
+    /* Logo styling – cropping the image inside its container */
     #logo {
       width: 100px;
       height: 50px;
@@ -110,20 +104,30 @@
       align-items: center;
       z-index: 150;
     }
-    /* Bubble item layout */
     .bubble-item {
       display: flex;
       flex-direction: column;
       align-items: center;
       cursor: pointer;
     }
-    /* Globe wrapper for bubble preview */
-    .globe-wrapper {
+    .bubble {
       width: 60px;
       height: 60px;
       border-radius: 50%;
       overflow: hidden;
+      border: 2px solid #007bff;
       background: #fff;
+    }
+    .bubble img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /* Animation: full-quality image is zoomed in and pans horizontally over 6 sec */
+      animation: bubblePan 6s linear infinite alternate-reverse;
+    }
+    @keyframes bubblePan {
+      0% { transform: scale(1.8) translateX(0%); }
+      100% { transform: scale(1.8) translateX(20%); }
     }
     .bubble-label {
       margin-top: 5px;
@@ -138,7 +142,7 @@
       #logo { width: 80px; height: 40px; transform: translateY(5px); }
       #loading-logo { width: 150px; }
       #loading-text { font-size: 16px; }
-      .globe-wrapper { width: 50px; height: 50px; }
+      .bubble { width: 50px; height: 50px; }
       .bubble-label { font-size: 9px; }
     }
   </style>
@@ -167,19 +171,19 @@
   <!-- Bubble Navigation Container -->
   <div id="bubble-container">
     <div class="bubble-item" data-scene="living">
-      <div class="globe-wrapper" id="globe-living"></div>
+      <div class="bubble"><img alt="Living Room Preview"></div>
       <div class="bubble-label">Living Room</div>
     </div>
     <div class="bubble-item" data-scene="kitchen">
-      <div class="globe-wrapper" id="globe-kitchen"></div>
+      <div class="bubble"><img alt="Kitchen Preview"></div>
       <div class="bubble-label">Kitchen</div>
     </div>
     <div class="bubble-item" data-scene="balcony">
-      <div class="globe-wrapper" id="globe-balcony"></div>
+      <div class="bubble"><img alt="Balcony Preview"></div>
       <div class="bubble-label">Balcony</div>
     </div>
     <div class="bubble-item" data-scene="mbed">
-      <div class="globe-wrapper" id="globe-mbed"></div>
+      <div class="bubble"><img alt="Master Bedroom Preview"></div>
       <div class="bubble-label">Master Bedroom</div>
     </div>
   </div>
@@ -287,41 +291,7 @@
     }
 
     /* ---------------------------------------------------
-       Create a 3D Globe in a Bubble using Three.js
-       (Basic spinning sphere without distortion)
-    --------------------------------------------------- */
-    function createGlobeInBubble(container, imageURL) {
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(width, height);
-      container.appendChild(renderer.domElement);
-      
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
-      camera.position.z = 70;
-      
-      const geometry = new THREE.SphereGeometry(25, 32, 32);
-      
-      const textureLoader = new THREE.TextureLoader();
-      textureLoader.crossOrigin = "Anonymous";
-      textureLoader.load(imageURL, function(texture) {
-        const material = new THREE.MeshBasicMaterial({ map: texture });
-        const sphere = new THREE.Mesh(geometry, material);
-        scene.add(sphere);
-        
-        function animate() {
-          requestAnimationFrame(animate);
-          sphere.rotation.y += 0.005;
-          renderer.render(scene, camera);
-        }
-        animate();
-      });
-    }
-
-    /* ---------------------------------------------------
-       Initialize Bubble Previews (Using 3D Globe)
+       Initialize Bubble Previews (Using Full-Quality Image)
     --------------------------------------------------- */
     async function initBubbles() {
       const bubbleItems = document.querySelectorAll(".bubble-item");
@@ -329,12 +299,9 @@
         const scene = item.getAttribute("data-scene");
         try {
           const panoURL = await getPanoramaURL(scene);
-          const globeContainer = item.querySelector(".globe-wrapper");
-          // Clear any existing content and create the 3D globe preview
-          globeContainer.innerHTML = "";
-          createGlobeInBubble(globeContainer, panoURL);
+          item.querySelector(".bubble img").src = panoURL;
         } catch (error) {
-          console.error("Error creating globe for", scene, error);
+          console.error("Error loading full-quality preview for", scene, error);
         }
         item.addEventListener("click", function() {
           if (window.viewer) {
@@ -349,7 +316,7 @@
     --------------------------------------------------- */
     async function initAll() {
       await Promise.all([initViewer(), initBubbles()]);
-      // Hide the loading screen once everything is fully loaded
+      // Hide the loading screen once both are fully loaded
       document.getElementById("loading-screen").style.display = "none";
     }
     initAll();
