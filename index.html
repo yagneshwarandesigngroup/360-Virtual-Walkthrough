@@ -50,7 +50,7 @@
       justify-content: center;
       height: 100%;
     }
-    /* Increased logo size for the loading screen (50% larger than original 150px -> 225px width) */
+    /* Increased logo size for the loading screen (225px wide) */
     #loading-logo {
       width: 225px;
       height: auto;
@@ -87,11 +87,11 @@
       object-fit: cover;
       transform: translateY(0%);
     }
-    /* 360 Viewer Container: height updated to 80vh */
+    /* 360 Viewer Container: fills the remaining screen (full viewport minus header) */
     #panorama {
       width: 100vw;
-      height: 80vh;
-      margin-top: 10px;
+      height: calc(100vh - 40px);
+      margin-top: 0;
     }
     /* Bubble Navigation Container */
     #bubble-container {
@@ -115,7 +115,7 @@
       height: 60px;
       border-radius: 50%;
       overflow: hidden;
-      border: 1px solid #000000;
+      border: 1px solid black; /* Changed to 1px black border */
       background: #fff;
     }
     .bubble img {
@@ -291,7 +291,40 @@
     }
 
     /* ---------------------------------------------------
-       Initialize Bubble Previews (Using Full-Quality Image)
+       Create a 3D Globe in a Bubble using Three.js (Basic Spinning Sphere)
+    --------------------------------------------------- */
+    function createGlobeInBubble(container, imageURL) {
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      container.appendChild(renderer.domElement);
+      
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
+      camera.position.z = 70;
+      
+      const geometry = new THREE.SphereGeometry(25, 32, 32);
+      
+      const textureLoader = new THREE.TextureLoader();
+      textureLoader.crossOrigin = "Anonymous";
+      textureLoader.load(imageURL, function(texture) {
+        const material = new THREE.MeshBasicMaterial({ map: texture });
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+        
+        function animate() {
+          requestAnimationFrame(animate);
+          sphere.rotation.y += 0.005;
+          renderer.render(scene, camera);
+        }
+        animate();
+      });
+    }
+
+    /* ---------------------------------------------------
+       Initialize Bubble Previews (Using 3D Globe)
     --------------------------------------------------- */
     async function initBubbles() {
       const bubbleItems = document.querySelectorAll(".bubble-item");
@@ -299,9 +332,15 @@
         const scene = item.getAttribute("data-scene");
         try {
           const panoURL = await getPanoramaURL(scene);
-          item.querySelector(".bubble img").src = panoURL;
+          const globeContainer = item.querySelector(".globe-wrapper");
+          // If not using a special wrapper, we can use the bubble container
+          // Here we assume the globe should be inserted into the existing bubble element.
+          // We'll create a div inside the bubble to host the Three.js canvas.
+          // For this version, we simply use the bubble element.
+          globeContainer.innerHTML = "";
+          createGlobeInBubble(globeContainer, panoURL);
         } catch (error) {
-          console.error("Error loading full-quality preview for", scene, error);
+          console.error("Error creating globe for", scene, error);
         }
         item.addEventListener("click", function() {
           if (window.viewer) {
