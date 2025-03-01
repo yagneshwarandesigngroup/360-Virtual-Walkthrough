@@ -67,31 +67,31 @@
       position: relative;
       height: 40px;
       display: flex;
-      align-items: center;
+      align-items: center; /* centers items vertically */
       justify-content: space-between;
       padding: 0 10px;
     }
-    /* Title styling – aligned to the left, vertical adjustment via translateY */
+    /* Title styling – aligned to the left; removed translateY to allow proper centering */
     #header-container h2 {
       margin: 0;
       font-weight: 600;
       font-size: 12px;
       flex-grow: 1;
       text-align: left;
-      transform: translateY(10%);
+      /* transform: translateY(10%); -- removed for centering */
     }
     /* Logo styling – cropping the image inside its container */
     #logo {
       width: 100px;
       height: 50px;
       object-fit: cover;
-      transform: translateY(0%);
+      /* transform: translateY(0%); already centered via flex */
     }
-    /* 360 Viewer Container: fills the remaining screen (full viewport minus header) */
+    /* 360 Viewer Container: height updated to 80vh */
     #panorama {
       width: 100vw;
-      height: calc(100vh - 40px);
-      margin-top: 0;
+      height: 80vh;
+      margin-top: 10px;
     }
     /* Bubble Navigation Container */
     #bubble-container {
@@ -115,7 +115,7 @@
       height: 60px;
       border-radius: 50%;
       overflow: hidden;
-      border: 1px solid black; /* Changed to 1px black border */
+      border: 1px solid black; /* updated to 1px black border */
       background: #fff;
     }
     .bubble img {
@@ -138,8 +138,8 @@
     /* Mobile adjustments */
     @media (max-width: 768px) {
       #header-container { height: 40px; padding: 0 10px; }
-      #header-container h2 { font-size: 10px; transform: translateY(6px); }
-      #logo { width: 80px; height: 40px; transform: translateY(5px); }
+      #header-container h2 { font-size: 10px; }
+      #logo { width: 80px; height: 40px; }
       #loading-logo { width: 150px; }
       #loading-text { font-size: 16px; }
       .bubble { width: 50px; height: 50px; }
@@ -332,11 +332,8 @@
         const scene = item.getAttribute("data-scene");
         try {
           const panoURL = await getPanoramaURL(scene);
-          const globeContainer = item.querySelector(".globe-wrapper");
-          // If not using a special wrapper, we can use the bubble container
-          // Here we assume the globe should be inserted into the existing bubble element.
-          // We'll create a div inside the bubble to host the Three.js canvas.
-          // For this version, we simply use the bubble element.
+          const globeContainer = item.querySelector(".globe-wrapper") || item.querySelector(".bubble");
+          // Clear any existing content and create the 3D globe preview
           globeContainer.innerHTML = "";
           createGlobeInBubble(globeContainer, panoURL);
         } catch (error) {
