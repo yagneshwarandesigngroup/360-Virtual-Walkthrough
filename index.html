@@ -16,9 +16,8 @@
     body { 
       font-family: "Poppins", sans-serif; 
       margin: 0; 
-      padding-top: 60px; /* Space for fixed header */
+      text-align: center; 
     }
-    
     /* Loading Screen Overlay */
     #loading-screen {
       position: fixed;
@@ -28,153 +27,131 @@
       height: 100%;
       background-color: #fff;
       z-index: 200;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
-    
-    /* Header Styles */
-    #header-container {
-      position: fixed;
+    #loading-bg {
+      position: absolute;
       top: 0;
       left: 0;
-      right: 0;
+      width: 100%;
+      height: 100%;
+      background: url('loading.jpg') center center no-repeat;
+      background-size: cover;
+      opacity: 0.25;
+      z-index: 1;
+    }
+    #loading-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    #loading-logo {
+      width: 225px;
+      height: auto;
+      object-fit: cover;
+      margin-bottom: 20px;
+    }
+    #loading-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+    /* Modified Header Container */
+    #header-container {
+      position: relative;
       height: 60px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 25px;
-      background: rgba(255, 255, 255, 0.97);
-      backdrop-filter: blur(6px);
-      z-index: 100;
-      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
-      border-bottom: 1px solid #eee;
+      background: #fff;
     }
-    
     #header-container h2 {
       margin: 0;
       font-weight: 600;
       font-size: 16px;
-      color: #1C1C1B;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 60%;
+      text-align: left;
+      flex: 1;
     }
-    
     #logo {
-      height: 70%;
+      height: 40px;
       width: auto;
-      max-width: 180px;
       object-fit: contain;
       margin-left: auto;
     }
-    
     /* 360 Viewer Container */
     #panorama {
       width: 100vw;
-      height: calc(100vh - 60px);
+      height: 100vh;
+      margin-top: 10px;
     }
-    
     /* Bubble Navigation */
     #bubble-container {
       position: fixed;
-      bottom: 25px;
+      bottom: 20px;
       left: 0;
       right: 0;
       display: flex;
-      justify-content: center;
-      gap: 35px;
+      justify-content: space-evenly;
+      align-items: center;
       z-index: 150;
     }
-    
     .bubble-item {
       display: flex;
       flex-direction: column;
       align-items: center;
       cursor: pointer;
-      transition: transform 0.2s ease;
     }
-    
-    .bubble-item:hover {
-      transform: translateY(-5px);
-    }
-    
     .bubble {
-      width: 65px;
-      height: 65px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       overflow: hidden;
-      border: 1.5px solid #1C1C1B;
+      border: 1px solid #1C1C1B;
       background: #fff;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    
     .bubble img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       animation: bubblePan 6s linear infinite alternate-reverse;
     }
-    
     @keyframes bubblePan {
       0% { transform: scale(1.8) translateX(0%); }
       100% { transform: scale(1.8) translateX(20%); }
     }
-    
     .bubble-label {
-      margin-top: 8px;
-      font-weight: 600;
-      font-size: 14px;
+      margin-top: 5px;
+      font-weight: 700;
+      font-size: 16px;
       color: #1C1C1B;
-      letter-spacing: 0.3px;
     }
-    
     /* Mobile adjustments */
     @media (max-width: 768px) {
-      body {
-        padding-top: 50px;
-      }
-      
-      #header-container {
+      #header-container { 
         height: 50px;
         padding: 0 15px;
       }
-      
       #header-container h2 {
-        font-size: 13px;
-        max-width: 55%;
+        font-size: 12px;
       }
-      
       #logo {
-        max-width: 140px;
-        height: 65%;
+        height: 35px;
       }
-      
-      #panorama {
-        height: calc(100vh - 50px);
-      }
-      
-      #bubble-container {
-        gap: 20px;
-        bottom: 15px;
-      }
-      
-      .bubble {
-        width: 50px;
-        height: 50px;
-      }
-      
-      .bubble-label {
-        font-size: 11px;
-        margin-top: 6px;
-      }
+      #loading-logo { width: 150px; }
+      #loading-text { font-size: 16px; }
+      .bubble { width: 50px; height: 50px; }
+      .bubble-label { font-size: 9px; }
     }
   </style>
 </head>
 <body>
   <!-- Loading Screen -->
   <div id="loading-screen">
+    <div id="loading-bg"></div>
     <div id="loading-content">
       <img id="loading-logo" alt="Logo">
       <div id="loading-text">Your 360° Virtual Walkthrough is setting up...</div>
@@ -211,8 +188,99 @@
   </div>
   
   <script>
-    // (Keep the existing JavaScript code unchanged)
-    // [Previous script content remains identical here...]
+    // Original JavaScript Code
+    const fileMapping = { "living": "hall" };
+
+    function loadImageWithFallback(imgElement, baseName, formats) {
+      let index = 0;
+      function tryNext() {
+        if (index >= formats.length) return;
+        imgElement.src = baseName + formats[index];
+        index++;
+      }
+      imgElement.onerror = tryNext;
+      tryNext();
+    }
+    
+    loadImageWithFallback(document.getElementById("logo"), "logo", [".jpg", ".jpeg", ".png"]);
+    loadImageWithFallback(document.getElementById("loading-logo"), "logo", [".jpg", ".jpeg", ".png"]);
+
+    async function getCompatibleImageURL(baseName, formats) {
+      for (const ext of formats) {
+        const url = baseName + ext;
+        try {
+          await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = url;
+          });
+          return url;
+        } catch(e) {}
+      }
+      return "";
+    }
+
+    async function getPanoramaURL(sceneName) {
+      const baseName = fileMapping[sceneName] || sceneName;
+      return await getCompatibleImageURL(baseName, [".jpg", ".jpeg", ".png"]);
+    }
+
+    async function initViewer() {
+      try {
+        const livingURL = await getPanoramaURL("living");
+        const kitchenURL = await getPanoramaURL("kitchen");
+        const balconyURL = await getPanoramaURL("balcony");
+        const mbedURL = await getPanoramaURL("mbed");
+
+        window.viewer = pannellum.viewer('panorama', {
+          default: {
+            firstScene: 'living',
+            autoLoad: true,
+            showZoomCtrl: true,
+            minPitch: -120,
+            maxPitch: 120,
+            minYaw: -180,
+            maxYaw: 180,
+            minHfov: 80,
+            maxHfov: 120
+          },
+          scenes: {
+            living: { panorama: livingURL, hotSpots: [] },
+            kitchen: { panorama: kitchenURL, hotSpots: [] },
+            balcony: { panorama: balconyURL, hotSpots: [] },
+            mbed: { panorama: mbedURL, hotSpots: [] }
+          }
+        });
+      } catch (error) {
+        console.error("Error initializing viewer:", error);
+      }
+    }
+
+    async function initBubbles() {
+      const bubbleItems = document.querySelectorAll(".bubble-item");
+      for (const item of bubbleItems) {
+        const scene = item.getAttribute("data-scene");
+        try {
+          const panoURL = await getPanoramaURL(scene);
+          item.querySelector(".bubble img").src = panoURL;
+        } catch (error) {
+          console.error("Error loading preview for", scene, error);
+        }
+        item.addEventListener("click", function() {
+          if (window.viewer) {
+            window.viewer.loadScene(scene);
+          }
+        });
+      }
+    }
+
+    async function initAll() {
+      await Promise.all([initViewer(), initBubbles()]);
+      document.getElementById("loading-screen").style.display = "none";
+    }
+    initAll();
   </script>
 </body>
 </html>
