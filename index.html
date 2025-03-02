@@ -18,43 +18,452 @@
       margin: 0; 
       text-align: center; 
     }
-    /* Header container always adjusts to its height */
+    /* Loading Screen Overlay */
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #fff; /* white background */
+      z-index: 200;
+    }
+    /* Loading Background Image with 25% opacity */
+    #loading-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('loading.jpg') center center no-repeat;
+      background-size: cover;
+      opacity: 0.25;
+      z-index: 1;
+    }
+    /* Loading Content: logo and text on top */
+    #loading-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    /* Increased logo size for the loading screen (225px wide) */
+    #loading-logo {
+      width: 225px;
+      height: auto;
+      object-fit: cover;
+      margin-bottom: 20px;
+    }
+    #loading-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+    /* Header container (set to 40px but can be changed) */
     #header-container {
       position: relative;
-      height: 40px; /* Default height */
+      height: 40px;  /* Change this value to adjust header height */
       display: flex;
-      align-items: center;
+      align-items: center; /* Vertically centers items */
       justify-content: space-between;
       padding: 0 10px;
     }
-    /* Title styling – aligned to the left, vertical adjustment via translateY */
+    /* Title styling – aligned to the left */
     #header-container h2 {
       margin: 0;
       font-weight: 600;
       font-size: 12px;
       flex-grow: 1;
       text-align: left;
-      transform: translateY(10%);
+      /* No transform needed so that it remains centered */ 
     }
-    /* Logo styling – fills header height while keeping aspect ratio */
+    /* Logo styling – the logo fills the header height and adjusts proportionally */ 
     #logo {
-      height: 100%;
-      width: auto;
+      height: 100%;  /* Fills header height */
+      width: auto;   /* Keeps proportional width */
       object-fit: contain;
     }
-    /* 360 Viewer Container: height updated to 80vh */
+    /* 360 Viewer Container: full screen (you can adjust if needed) */
     #panorama {
       width: 100vw;
       height: 100vh;
       margin-top: 10px;
     }
+    /* Bubble Navigation Container */
+    #bubble-container {
+      position: fixed;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+      z-index: 150;
+    }
+    .bubble-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+    }
+    .bubble {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 1px solid #1C1C1B; /* 1px black border */
+      background: #fff;
+    }
+    .bubble img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /* Animation: full-quality image is zoomed in and pans horizontally over 6 sec */
+      animation: bubblePan 6s linear infinite alternate-reverse;
+    }
+    @keyframes bubblePan {
+      0% { transform: scale(1.8) translateX(0%); }
+      100% { transform: scale(1.8) translateX(20%); }
+    }
+    .bubble-label {
+      margin-top: 5px;
+      font-weight: 700;
+      font-size: 16px;
+      color: #1C1C1B;
+    }
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      #header-container { height: 40px; padding: 0 10px; }
+      #header-container h2 { font-size: 10px; }
+      #logo { height: 100%; width: auto; object-fit: contain; } /* Will adjust automatically */\n      #loading-logo { width: 150px; }\n      #loading-text { font-size: 16px; }\n      .bubble { width: 50px; height: 50px; }\n      .bubble-label { font-size: 9px; }\n    }\n  </style>\n</head>\n<body>\n  <!-- Loading Screen Overlay -->\n  <div id=\"loading-screen\">\n    <div id=\"loading-bg\"></div>\n    <div id=\"loading-content\">\n      <img id=\"loading-logo\" alt=\"Logo\">\n      <div id=\"loading-text\">Your 360° Virtual Walkthrough is setting up...</div>\n    </div>\n  </div>\n  \n  <!-- Header with title and logo -->\n  <div id=\"header-container\">\n    <h2>360° Virtual Walkthrough</h2>\n    <img id=\"logo\" alt=\"Logo\">\n  </div>\n  \n  <div id=\"content-wrapper\">\n    <!-- 360 Viewer Container -->\n    <div id=\"panorama\"></div>\n  </div>\n  \n  <!-- Bubble Navigation Container -->\n  <div id=\"bubble-container\">\n    <div class=\"bubble-item\" data-scene=\"living\">\n      <div class=\"bubble\"><img alt=\"Living Room Preview\"></div>\n      <div class=\"bubble-label\">Living Room</div>\n    </div>\n    <div class=\"bubble-item\" data-scene=\"kitchen\">\n      <div class=\"bubble\"><img alt=\"Kitchen Preview\"></div>\n      <div class=\"bubble-label\">Kitchen</div>\n    </div>\n    <div class=\"bubble-item\" data-scene=\"balcony\">\n      <div class=\"bubble\"><img alt=\"Balcony Preview\"></div>\n      <div class=\"bubble-label\">Balcony</div>\n    </div>\n    <div class=\"bubble-item\" data-scene=\"mbed\">\n      <div class=\"bubble\"><img alt=\"Master Bedroom Preview\"></div>\n      <div class=\"bubble-label\">Master Bedroom</div>\n    </div>\n  </div>\n  <script>\n    /* ---------------------------------------------------\n       Mapping: Scene ID to File Base Name\n       For the living room, file name is \"hall\"\n    --------------------------------------------------- */\n    const fileMapping = { \"living\": \"hall\" };\n\n    /* ---------------------------------------------------\n       Logo Fallback (Synchronous)\n    --------------------------------------------------- */\n    function loadImageWithFallback(imgElement, baseName, formats) {\n      let index = 0;\n      function tryNext() {\n        if (index >= formats.length) return;\n        imgElement.src = baseName + formats[index];\n        index++;\n      }\n      imgElement.onerror = tryNext;\n      tryNext();\n    }\n    // Load logo for header and loading screen\n    loadImageWithFallback(document.getElementById(\"logo\"), \"logo\", [\".jpg\", \".jpeg\", \".png\"]);\n    loadImageWithFallback(document.getElementById(\"loading-logo\"), \"logo\", [\".jpg\", \".jpeg\", \".png\"]);\n\n    /* ---------------------------------------------------\n       Async Image Loader with Fallback\n    --------------------------------------------------- */\n    async function getCompatibleImageURL(baseName, formats) {\n      for (const ext of formats) {\n        const url = baseName + ext;\n        try {\n          await new Promise((resolve, reject) => {\n            const img = new Image();\n            img.crossOrigin = \"Anonymous\";\n            img.onload = resolve;\n            img.onerror = reject;\n            img.src = url;\n          });\n          return url;\n        } catch(e) {\n          // Try next extension\n        }\n      }\n      return \"\";\n    }\n\n    // Helper function to get panorama URL (using mapping for living room)\n    async function getPanoramaURL(sceneName) {\n      const baseName = fileMapping[sceneName] || sceneName;\n      return await getCompatibleImageURL(baseName, [\".jpg\", \".jpeg\", \".png\"]);\n    }\n\n    /* ---------------------------------------------------\n       Initialize Pannellum Viewer\n    --------------------------------------------------- */\n    async function initViewer() {\n      try {\n        const livingURL = await getPanoramaURL(\"living\");\n        const kitchenURL = await getPanoramaURL(\"kitchen\");\n        const balconyURL = await getPanoramaURL(\"balcony\");\n        const mbedURL = await getPanoramaURL(\"mbed\");\n\n        window.viewer = pannellum.viewer('panorama', {\n          default: {\n            firstScene: 'living',\n            autoLoad: true,\n            showZoomCtrl: true,\n            minPitch: -120,\n            maxPitch: 120,\n            minYaw: -180,\n            maxYaw: 180,\n            minHfov: 80,\n            maxHfov: 120\n          },\n          scenes: {\n            living: {\n              type: 'equirectangular',\n              panorama: livingURL,\n              hotSpots: []\n            },\n            kitchen: {\n              type: 'equirectangular',\n              panorama: kitchenURL,\n              hotSpots: []\n            },\n            balcony: {\n              type: 'equirectangular',\n              panorama: balconyURL,\n              hotSpots: []\n            },\n            mbed: {\n              type: 'equirectangular',\n              panorama: mbedURL,\n              hotSpots: []\n            }\n          }\n        });\n      } catch (error) {\n        console.error(\"Error initializing viewer:\", error);\n      }\n    }\n\n    /* ---------------------------------------------------\n       Initialize Bubble Previews (Using Full-Quality Image)\n    --------------------------------------------------- */\n    async function initBubbles() {\n      const bubbleItems = document.querySelectorAll(\".bubble-item\");\n      for (const item of bubbleItems) {\n        const scene = item.getAttribute(\"data-scene\");\n        try {\n          const panoURL = await getPanoramaURL(scene);\n          item.querySelector(\".bubble img\").src = panoURL;\n        } catch (error) {\n          console.error(\"Error loading full-quality preview for\", scene, error);\n        }\n        item.addEventListener(\"click\", function() {\n          if (window.viewer) {\n            window.viewer.loadScene(scene);\n          }\n        });\n      }\n    }\n\n    /* ---------------------------------------------------\n       Combined Initialization: Wait for viewer and bubbles to load\n    --------------------------------------------------- */\n    async function initAll() {\n      await Promise.all([initViewer(), initBubbles()]);\n      // Hide the loading screen once both are fully loaded\n      document.getElementById(\"loading-screen\").style.display = \"none\";\n    }\n    initAll();\n  </script>\n</body>\n</html>\n"}]}
+
+Below is your final Version 1.6 code updated to meet your request. The header remains 40px (or whatever you set it to), and the logo on the right now fills the header’s height while maintaining its proportional width (via “height: 100%; width: auto; object-fit: contain;”). Changing the header’s height will automatically adjust the logo’s size.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>360° Walkthrough | Yagneshwaran Design Group</title>
+  
+  <!-- Import Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  
+  <!-- Pannellum for 360° viewer (Using CDN) -->
+  <script src="https://cdn.pannellum.org/2.5/pannellum.js"></script>
+  <link rel="stylesheet" href="https://cdn.pannellum.org/2.5/pannellum.css" />
+  
+  <style>
+    body { 
+      font-family: "Poppins", sans-serif; 
+      margin: 0; 
+      text-align: center; 
+    }
+    /* Loading Screen Overlay */
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #fff; /* white background */
+      z-index: 200;
+    }
+    /* Loading Background Image with 25% opacity */
+    #loading-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('loading.jpg') center center no-repeat;
+      background-size: cover;
+      opacity: 0.25;
+      z-index: 1;
+    }
+    /* Loading Content: logo and text on top */
+    #loading-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    /* Increased logo size for the loading screen (225px wide) */
+    #loading-logo {
+      width: 225px;
+      height: auto;
+      object-fit: cover;
+      margin-bottom: 20px;
+    }
+    #loading-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+    /* Header container always under 40px (change the height here to adjust header) */
+    #header-container {
+      position: relative;
+      height: 40px;  /* Change this value to adjust header height */
+      display: flex;
+      align-items: center;  /* vertically centers children */
+      justify-content: space-between;
+      padding: 0 10px;
+    }
+    /* Title styling – aligned to the left */
+    #header-container h2 {
+      margin: 0;
+      font-weight: 600;
+      font-size: 12px;
+      flex-grow: 1;
+      text-align: left;
+      /* Removed transform for perfect centering */ 
+    }
+    /* Logo styling – fills header height and adjusts proportionally */ 
+    #logo {
+      height: 100%;  /* fills header height (40px) */ 
+      width: auto;   /* proportional width */ 
+      object-fit: contain;
+    }
+    /* 360 Viewer Container: fills full screen */
+    #panorama {
+      width: 100vw;
+      height: 100vh;
+      margin-top: 10px;
+    }
+    /* Bubble Navigation Container */
+    #bubble-container {
+      position: fixed;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+      z-index: 150;
+    }
+    .bubble-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+    }
+    .bubble {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 1px solid #1C1C1B; /* 1px black border */
+      background: #fff;
+    }
+    .bubble img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /* Animation: full-quality image is zoomed in and pans horizontally over 6 sec */
+      animation: bubblePan 6s linear infinite alternate-reverse;
+    }
+    @keyframes bubblePan {
+      0% { transform: scale(1.8) translateX(0%); }
+      100% { transform: scale(1.8) translateX(20%); }
+    }
+    .bubble-label {
+      margin-top: 5px;
+      font-weight: 700;
+      font-size: 16px;
+      color: #1C1C1B;
+    }
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      #header-container { height: 40px; padding: 0 10px; }
+      #header-container h2 { font-size: 10px; }
+      #logo { height: 100%; width: auto; object-fit: contain; }
+      #loading-logo { width: 150px; }
+      #loading-text { font-size: 16px; }
+      .bubble { width: 50px; height: 50px; }
+      .bubble-label { font-size: 9px; }
+    }
   </style>
 </head>
 <body>
+  <!-- Loading Screen Overlay -->
+  <div id="loading-screen">
+    <div id="loading-bg"></div>
+    <div id="loading-content">
+      <img id="loading-logo" alt="Logo">
+      <div id="loading-text">Your 360° Virtual Walkthrough is setting up...</div>
+    </div>
+  </div>
+  
   <!-- Header with title and logo -->
   <div id="header-container">
     <h2>360° Virtual Walkthrough</h2>
     <img id="logo" alt="Logo">
   </div>
+  
+  <div id="content-wrapper">
+    <!-- 360 Viewer Container -->
+    <div id="panorama"></div>
+  </div>
+  
+  <!-- Bubble Navigation Container -->
+  <div id="bubble-container">
+    <div class="bubble-item" data-scene="living">
+      <div class="bubble"><img alt="Living Room Preview"></div>
+      <div class="bubble-label">Living Room</div>
+    </div>
+    <div class="bubble-item" data-scene="kitchen">
+      <div class="bubble"><img alt="Kitchen Preview"></div>
+      <div class="bubble-label">Kitchen</div>
+    </div>
+    <div class="bubble-item" data-scene="balcony">
+      <div class="bubble"><img alt="Balcony Preview"></div>
+      <div class="bubble-label">Balcony</div>
+    </div>
+    <div class="bubble-item" data-scene="mbed">
+      <div class="bubble"><img alt="Master Bedroom Preview"></div>
+      <div class="bubble-label">Master Bedroom</div>
+    </div>
+  </div>
+  
+  <script>
+    /* ---------------------------------------------------
+       Mapping: Scene ID to File Base Name
+       For the living room, file name is "hall"
+    --------------------------------------------------- */
+    const fileMapping = { "living": "hall" };
+
+    /* ---------------------------------------------------
+       Logo Fallback (Synchronous)
+    --------------------------------------------------- */
+    function loadImageWithFallback(imgElement, baseName, formats) {
+      let index = 0;
+      function tryNext() {
+        if (index >= formats.length) return;
+        imgElement.src = baseName + formats[index];
+        index++;
+      }
+      imgElement.onerror = tryNext;
+      tryNext();
+    }
+    // Load logo for header and loading screen
+    loadImageWithFallback(document.getElementById("logo"), "logo", [".jpg", ".jpeg", ".png"]);
+    loadImageWithFallback(document.getElementById("loading-logo"), "logo", [".jpg", ".jpeg", ".png"]);
+
+    /* ---------------------------------------------------
+       Async Image Loader with Fallback
+    --------------------------------------------------- */
+    async function getCompatibleImageURL(baseName, formats) {
+      for (const ext of formats) {
+        const url = baseName + ext;
+        try {
+          await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = url;
+          });
+          return url;
+        } catch(e) {
+          // Try next extension
+        }
+      }
+      return "";
+    }
+
+    // Helper function to get panorama URL (using mapping for living room)
+    async function getPanoramaURL(sceneName) {
+      const baseName = fileMapping[sceneName] || sceneName;
+      return await getCompatibleImageURL(baseName, [".jpg", ".jpeg", ".png"]);
+    }
+
+    /* ---------------------------------------------------
+       Initialize Pannellum Viewer
+    --------------------------------------------------- */
+    async function initViewer() {
+      try {
+        const livingURL = await getPanoramaURL("living");
+        const kitchenURL = await getPanoramaURL("kitchen");
+        const balconyURL = await getPanoramaURL("balcony");
+        const mbedURL = await getPanoramaURL("mbed");
+
+        window.viewer = pannellum.viewer('panorama', {
+          default: {
+            firstScene: 'living',
+            autoLoad: true,
+            showZoomCtrl: true,
+            minPitch: -120,
+            maxPitch: 120,
+            minYaw: -180,
+            maxYaw: 180,
+            minHfov: 80,
+            maxHfov: 120
+          },
+          scenes: {
+            living: {
+              type: 'equirectangular',
+              panorama: livingURL,
+              hotSpots: []
+            },
+            kitchen: {
+              type: 'equirectangular',
+              panorama: kitchenURL,
+              hotSpots: []
+            },
+            balcony: {
+              type: 'equirectangular',
+              panorama: balconyURL,
+              hotSpots: []
+            },
+            mbed: {
+              type: 'equirectangular',
+              panorama: mbedURL,
+              hotSpots: []
+            }
+          }
+        });
+      } catch (error) {
+        console.error("Error initializing viewer:", error);
+      }
+    }
+
+    /* ---------------------------------------------------
+       Initialize Bubble Previews (Using Full-Quality Image)
+    --------------------------------------------------- */
+    async function initBubbles() {
+      const bubbleItems = document.querySelectorAll(".bubble-item");
+      for (const item of bubbleItems) {
+        const scene = item.getAttribute("data-scene");
+        try {
+          const panoURL = await getPanoramaURL(scene);
+          item.querySelector(".bubble img").src = panoURL;
+        } catch (error) {
+          console.error("Error loading full-quality preview for", scene, error);
+        }
+        item.addEventListener("click", function() {
+          if (window.viewer) {
+            window.viewer.loadScene(scene);
+          }
+        });
+      }
+    }
+
+    /* ---------------------------------------------------
+       Combined Initialization: Wait for viewer and bubbles to load
+    --------------------------------------------------- */
+    async function initAll() {
+      await Promise.all([initViewer(), initBubbles()]);
+      // Hide the loading screen once both are fully loaded
+      document.getElementById("loading-screen").style.display = "none";
+    }
+    initAll();
+  </script>
 </body>
 </html>
