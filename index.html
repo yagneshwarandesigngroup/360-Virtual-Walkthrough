@@ -1,325 +1,287 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>360° Walkthrough | Yagneshwaran Design Group</title>
-  
-  <!-- Import Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
-  
-  <!-- Pannellum for 360° viewer (Using CDN) -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>360° Virtual Walkthrough</title>
   <script src="https://cdn.pannellum.org/2.5/pannellum.js"></script>
-  <link rel="stylesheet" href="https://cdn.pannellum.org/2.5/pannellum.css" />
-  
+  <link rel="stylesheet" href="https://cdn.pannellum.org/2.5/pannellum.css">
   <style>
-    body { 
-      font-family: "Poppins", sans-serif; 
-      margin: 0; 
-      text-align: center; 
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
     }
-    /* Loading Screen Overlay */
+    body {
+      background: black;
+      overflow: hidden;
+    }
+    /* Loading Screen */
     #loading-screen {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: #fff; /* white background */
-      z-index: 200;
+      /* Pure black background for better contrast */
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      z-index: 10;
     }
-    /* Loading Background Image with 25% opacity */
-    #loading-bg {
+    /* Dark fade overlay for loading image */
+    .loading-overlay {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: url('loading.jpg') center center no-repeat;
-      background-size: cover;
-      opacity: 0.25;
+      background: black;
+      opacity: 0.8;
       z-index: 1;
     }
-    /* Loading Content: logo and text on top */
-    #loading-content {
+    /* Loading image fills the screen */
+    .loading-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+    /* Logo and text appear above overlay */
+    .loading-logo {
+      width: 216px; /* Increased by 20% from 180px */
+      margin-bottom: 15px;
       position: relative;
       z-index: 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
     }
-    /* Increased logo size for the loading screen (50% larger than original 150px -> 225px width) */
-    #loading-logo {
-      width: 225px;
-      height: auto;
-      object-fit: cover;
-      margin-bottom: 20px;
-    }
-    #loading-text {
+    .loading-text {
       font-size: 18px;
-      font-weight: 600;
-      color: #333;
-    }
-    /* Header container always under 40px (change the height here to adjust header) */
-    #header-container {
+      font-weight: bold;
+      color: #fff; /* Changed to white for better contrast */
       position: relative;
-      height: 40px;  /* Change this value to adjust header height */
-      display: flex;
-      align-items: center;  /* vertically centers children */
-      justify-content: space-between;
-      padding: 0 10px;
+      z-index: 2;
     }
-    /* Title styling – aligned to the left */
-    #header-container h2 {
-      margin: 0;
-      font-weight: 600;
-      font-size: 12px;
-      flex-grow: 1;
-      text-align: left;
-      transform: translateY(30%)
-    }
-    /* Logo styling – the logo fills the header’s height and maintains proportional width */
-    #logo {
-      height: 100%;  /* fills header height (40px) */ 
-      width: auto;   /* proportional width */ 
-      object-fit: contain;
-      transform: translateY(15%)
-    }
-    /* 360 Viewer Container: fills full screen */
-    #panorama {
+    /* 360 Viewer */
+    #viewer {
       width: 100vw;
-      height: calc(83.5vh - 40px);
-      margin-top: 10px;
+      height: 100vh;
     }
-    /* Bubble Navigation Container */
-    #bubble-container {
+    /* Navigation Bar */
+    #navigation {
       position: fixed;
       bottom: 20px;
-      left: 0;
-      right: 0;
+      width: 100%;
       display: flex;
       justify-content: space-evenly;
       align-items: center;
-      z-index: 150;
+      z-index: 5;
     }
-    .bubble-item {
+    .nav-item {
       display: flex;
       flex-direction: column;
       align-items: center;
       cursor: pointer;
     }
-    .bubble {
-      width: 60px;
-      height: 60px;
+    .nav-item img {
+      width: 63px;   /* Decreased by 10% from 70px */
+      height: 63px;
       border-radius: 50%;
-      overflow: hidden;
-      border: 1px solid #1C1C1B; /* 1px black border */
-      background: #fff;
-    }
-    .bubble img {
-      width: 100%;
-      height: 100%;
+      border: 2px solid white;
       object-fit: cover;
-      /* Animation: full-quality image is zoomed in and pans horizontally over 6 sec */
-      animation: bubblePan 6s linear infinite alternate-reverse;
+      transition: transform 0.3s, border 0.3s;
     }
-    @keyframes bubblePan {
-      0% { transform: scale(1.8) translateX(0%); }
-      100% { transform: scale(1.8) translateX(20%); }
+    .nav-item img:hover {
+      transform: scale(1.1);
+      border-color: yellow;
     }
-    .bubble-label {
+    .nav-item span {
+      font-size: 14px;
+      color: black;
       margin-top: 5px;
-      font-weight: 700;
-      font-size: 16px;
-      color: #1C1C1B;
+      transition: font-weight 0.3s;
     }
-    /* Mobile adjustments */
-    @media (max-width: 768px) {
-      #header-container { height: 40px; padding: 0 10px; }
-      #header-container h2 { font-size: 10px; }
-      #logo { height: 100%; width: auto; object-fit: contain; }
-      #loading-logo { width: 150px; }
-      #loading-text { font-size: 16px; }
-      .bubble { width: 50px; height: 50px; }
-      .bubble-label { font-size: 9px; }
+    .nav-item:hover span {
+      font-weight: bold;
+    }
+    /* Info Panel (Sidebar) */
+    #info-panel {
+      position: fixed;
+      left: -350px;
+      top: 0;
+      width: 350px;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      padding: 20px;
+      transition: left 0.4s ease-in-out;
+      z-index: 6;
+    }
+    /* Dark arrow for sidebar with white text */
+    #info-panel .pullout-arrow {
+      position: absolute;
+      top: 50%;
+      right: -30px;
+      background: rgba(0, 0, 0, 0.9);
+      color: white;  /* Set to white as requested */
+      padding: 10px;
+      border-radius: 0 5px 5px 0;
+      cursor: pointer;
+      transform: translateY(-50%);
+      transition: background 0.3s;
+    }
+    #info-panel .pullout-arrow:hover {
+      background: rgba(0, 0, 0, 0.4);
+    }
+    #info-panel .info-content {
+      margin-top: 50px;
+    }
+    #info-panel .info-logo {
+      width: 147px; /* Increased by 5% from 140px */
+      margin: 20px auto 20px; /* Centered with top margin */
+      display: block;
+    }
+    #info-panel #info-text {
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-line;
     }
   </style>
 </head>
 <body>
-  <!-- Loading Screen Overlay -->
+  <!-- Loading Screen -->
   <div id="loading-screen">
-    <div id="loading-bg"></div>
-    <div id="loading-content">
-      <img id="loading-logo" alt="Logo">
-      <div id="loading-text">Your 360° Virtual Walkthrough is setting up...</div>
+    <div class="loading-overlay"></div>
+    <img src="loading.jpg" alt="Loading" class="loading-image">
+    <img src="logo.png" alt="Logo" class="loading-logo">
+    <p class="loading-text">Your 360° Virtual Walkthrough is setting up...</p>
+  </div>
+  
+  <!-- 360 Viewer -->
+  <div id="viewer"></div>
+  
+  <!-- Navigation Bar -->
+  <div id="navigation">
+    <div class="nav-item" data-scene="hall">
+      <img src="hall.png" alt="Living Room">
+      <span>Living Room</span>
+    </div>
+    <div class="nav-item" data-scene="kitchen">
+      <img src="kitchen.png" alt="Kitchen">
+      <span>Kitchen</span>
+    </div>
+    <div class="nav-item" data-scene="mbed">
+      <img src="mbed.png" alt="Master Bedroom">
+      <span>Master Bedroom</span>
+    </div>
+    <div class="nav-item" data-scene="balcony">
+      <img src="balcony.png" alt="Balcony">
+      <span>Balcony</span>
     </div>
   </div>
   
-  <!-- Header with title and logo -->
-  <div id="header-container">
-    <h2>360° Virtual Walkthrough</h2>
-    <img id="logo" alt="Logo">
-  </div>
-  
-  <div id="content-wrapper">
-    <!-- 360 Viewer Container -->
-    <div id="panorama"></div>
-  </div>
-  
-  <!-- Bubble Navigation Container -->
-  <div id="bubble-container">
-    <div class="bubble-item" data-scene="living">
-      <div class="bubble"><img alt="Living Room Preview"></div>
-      <div class="bubble-label">Living Room</div>
-    </div>
-    <div class="bubble-item" data-scene="kitchen">
-      <div class="bubble"><img alt="Kitchen Preview"></div>
-      <div class="bubble-label">Kitchen</div>
-    </div>
-    <div class="bubble-item" data-scene="balcony">
-      <div class="bubble"><img alt="Balcony Preview"></div>
-      <div class="bubble-label">Balcony</div>
-    </div>
-    <div class="bubble-item" data-scene="mbed">
-      <div class="bubble"><img alt="Master Bedroom Preview"></div>
-      <div class="bubble-label">Master Bedroom</div>
+  <!-- Info Panel (Sidebar) -->
+  <div id="info-panel">
+    <div class="pullout-arrow">❯</div>
+    <div class="info-content">
+      <img src="logo.png" alt="Logo" class="info-logo">
+      <p id="info-text">
+Living Room: A spacious and elegantly designed living room with natural light and high-end finishes. The perfect space for relaxing or entertaining guests, featuring premium flooring, stylish furniture, and a seamless connection to other areas of the home.
+
+Kitchen: A modern and functional kitchen with high-quality countertops, ample storage, and top-tier appliances. Designed for both efficiency and style, this space is ideal for creating culinary masterpieces.
+
+Master Bedroom: A luxurious master bedroom offering a serene retreat with ample space, soft lighting, and elegant interiors. The perfect blend of comfort and sophistication, ensuring restful nights and peaceful mornings.
+
+Balcony: A private balcony with a stunning view, offering a peaceful escape from daily life. Whether enjoying a morning coffee or an evening breeze, this space is designed for relaxation and enjoyment.
+      </p>
     </div>
   </div>
   
   <script>
-    /* ---------------------------------------------------
-       Mapping: Scene ID to File Base Name
-       For the living room, file name is "hall"
-    --------------------------------------------------- */
-    const fileMapping = { "living": "hall" };
-
-    /* ---------------------------------------------------
-       Logo Fallback (Synchronous)
-    --------------------------------------------------- */
-    function loadImageWithFallback(imgElement, baseName, formats) {
-      let index = 0;
-      function tryNext() {
-        if (index >= formats.length) return;
-        imgElement.src = baseName + formats[index];
-        index++;
-      }
-      imgElement.onerror = tryNext;
-      tryNext();
-    }
-    // Load logo for header and loading screen
-    loadImageWithFallback(document.getElementById("logo"), "logo", [".jpg", ".jpeg", ".png"]);
-    loadImageWithFallback(document.getElementById("loading-logo"), "logo", [".jpg", ".jpeg", ".png"]);
-
-    /* ---------------------------------------------------
-       Async Image Loader with Fallback
-    --------------------------------------------------- */
-    async function getCompatibleImageURL(baseName, formats) {
-      for (const ext of formats) {
-        const url = baseName + ext;
-        try {
-          await new Promise((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = url;
-          });
-          return url;
-        } catch(e) {
-          // Try next extension
+    // Initialize Pannellum 360 Viewer with defined scenes
+    var viewer = pannellum.viewer('viewer', {
+      "default": {
+        "firstScene": "hall",
+        "sceneFadeDuration": 1000,
+        "autoLoad": true,
+        "autoRotate": -1,
+        "minPitch": -120,
+        "maxPitch": 120,
+        "hfov": 90,
+        "minHfov": 45,
+        "maxHfov": 60   // Increased by 20% from 80
+      },
+      "scenes": {
+        "hall": {
+          "type": "equirectangular",
+          "panorama": "hall.png"
+        },
+        "kitchen": {
+          "type": "equirectangular",
+          "panorama": "kitchen.png"
+        },
+        "mbed": {
+          "type": "equirectangular",
+          "panorama": "mbed.png"
+        },
+        "balcony": {
+          "type": "equirectangular",
+          "panorama": "balcony.png"
         }
       }
-      return "";
-    }
-
-    // Helper function to get panorama URL (using mapping for living room)
-    async function getPanoramaURL(sceneName) {
-      const baseName = fileMapping[sceneName] || sceneName;
-      return await getCompatibleImageURL(baseName, [".jpg", ".jpeg", ".png"]);
-    }
-
-    /* ---------------------------------------------------
-       Initialize Pannellum Viewer
-    --------------------------------------------------- */
-    async function initViewer() {
-      try {
-        const livingURL = await getPanoramaURL("living");
-        const kitchenURL = await getPanoramaURL("kitchen");
-        const balconyURL = await getPanoramaURL("balcony");
-        const mbedURL = await getPanoramaURL("mbed");
-
-        window.viewer = pannellum.viewer('panorama', {
-          default: {
-            firstScene: 'living',
-            autoLoad: true,
-            showZoomCtrl: true,
-            minPitch: -120,
-            maxPitch: 120,
-            minYaw: -180,
-            maxYaw: 180,
-            minHfov: 30,
-            maxHfov: 80
-          },
-          scenes: {
-            living: {
-              type: 'equirectangular',
-              panorama: livingURL,
-              hotSpots: []
-            },
-            kitchen: {
-              type: 'equirectangular',
-              panorama: kitchenURL,
-              hotSpots: []
-            },
-            balcony: {
-              type: 'equirectangular',
-              panorama: balconyURL,
-              hotSpots: []
-            },
-            mbed: {
-              type: 'equirectangular',
-              panorama: mbedURL,
-              hotSpots: []
-            }
-          }
-        });
-      } catch (error) {
-        console.error("Error initializing viewer:", error);
-      }
-    }
-
-    /* ---------------------------------------------------
-       Initialize Bubble Previews (Using Full-Quality Image)
-    --------------------------------------------------- */
-    async function initBubbles() {
-      const bubbleItems = document.querySelectorAll(".bubble-item");
-      for (const item of bubbleItems) {
-        const scene = item.getAttribute("data-scene");
-        try {
-          const panoURL = await getPanoramaURL(scene);
-          item.querySelector(".bubble img").src = panoURL;
-        } catch (error) {
-          console.error("Error loading full-quality preview for", scene, error);
+    });
+    
+    // Update scene and info text when a navigation item is clicked
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', function() {
+        var sceneId = this.dataset.scene;
+        viewer.loadScene(sceneId);
+        let infoText = '';
+        switch (sceneId) {
+          case 'hall':
+            infoText = 'Living Room: A spacious and elegantly designed living room with natural light and high-end finishes. The perfect space for relaxing or entertaining guests, featuring premium flooring, stylish furniture, and a seamless connection to other areas of the home.';
+            break;
+          case 'kitchen':
+            infoText = 'Kitchen: A modern and functional kitchen with high-quality countertops, ample storage, and top-tier appliances. Designed for both efficiency and style, this space is ideal for creating culinary masterpieces.';
+            break;
+          case 'mbed':
+            infoText = 'Master Bedroom: A luxurious master bedroom offering a serene retreat with ample space, soft lighting, and elegant interiors. The perfect blend of comfort and sophistication, ensuring restful nights and peaceful mornings.';
+            break;
+          case 'balcony':
+            infoText = 'Balcony: A private balcony with a stunning view, offering a peaceful escape from daily life. Whether enjoying a morning coffee or an evening breeze, this space is designed for relaxation and enjoyment.';
+            break;
+          default:
+            infoText = 'Click a room to explore.';
         }
-        item.addEventListener("click", function() {
-          if (window.viewer) {
-            window.viewer.loadScene(scene);
-          }
-        });
+        document.getElementById('info-text').innerText = infoText;
+      });
+    });
+    
+    // Toggle the Info Panel (Sidebar)
+    const pulloutArrow = document.querySelector('#info-panel .pullout-arrow');
+    pulloutArrow.addEventListener('click', function() {
+      const infoPanel = document.getElementById('info-panel');
+      if (infoPanel.style.left === '0px') {
+        infoPanel.style.left = '-350px';
+        this.innerHTML = '❯';
+      } else {
+        infoPanel.style.left = '0px';
+        this.innerHTML = '❮';
       }
-    }
-
-    /* ---------------------------------------------------
-       Combined Initialization: Wait for viewer and bubbles to load
-    --------------------------------------------------- */
-    async function initAll() {
-      await Promise.all([initViewer(), initBubbles()]);
-      // Hide the loading screen once both are fully loaded
-      document.getElementById("loading-screen").style.display = "none";
-    }
-    initAll();
+    });
+    
+    // Hide the loading screen after the viewer is ready
+    window.addEventListener('load', function() {
+      setTimeout(() => {
+        document.getElementById('loading-screen').style.display = 'none';
+      }, 2000);
+    });
   </script>
 </body>
 </html>
