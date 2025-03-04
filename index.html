@@ -64,7 +64,7 @@
     .loading-text {
       font-size: 18px;
       font-weight: bold;
-      color: #fff; /* Changed to white for better contrast */
+      color: #fff; /* White for contrast */
       position: relative;
       z-index: 2;
     }
@@ -123,13 +123,13 @@
       transition: left 0.4s ease-in-out;
       z-index: 6;
     }
-    /* Dark arrow for sidebar with white text */
+    /* Sidebar Pullout Arrow */
     #info-panel .pullout-arrow {
       position: absolute;
       top: 50%;
       right: -30px;
       background: rgba(0, 0, 0, 0.9);
-      color: white;  /* Set to white as requested */
+      color: white;  /* White arrow */
       padding: 10px;
       border-radius: 0 5px 5px 0;
       cursor: pointer;
@@ -146,6 +146,7 @@
       width: 180px; /* Increased by 5% from 140px */
       margin: 20px auto 20px; /* Centered with top margin */
       display: block;
+      cursor: pointer;
     }
     #info-panel #info-text {
       font-size: 14px;
@@ -191,26 +192,30 @@
     <div class="pullout-arrow">❯</div>
     <div class="info-content">
       <img src="logo.png" alt="Logo" class="info-logo">
-      <p id="info-text">
-<div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.6;">
-    <h2 style="font-size: 14px; margin-bottom: 12px;">
-        <strong>Yagneshwaran Design Group – IT Solutions for Architecture & Construction</strong>
-    </h2>
-    <p>We provide cutting-edge <strong>IT services</strong> for architects, builders, and real estate firms, including:</p>
-    <ul style="list-style: none; padding: 0; margin-top: 8px;">
-        <li style="margin-bottom: 4px;">✔ <strong>360° Virtual Walkthroughs & 3D Visualization</strong></li>
-        <li style="margin-bottom: 4px;">✔ <strong>BIM & CAD Drafting</strong></li>
-        <li style="margin-bottom: 4px;">✔ <strong>Construction ERP & Project Management Software</strong></li>
-        <li style="margin-bottom: 4px;">✔ <strong>Smart Home & IoT Integration</strong></li>
-        <li style="margin-bottom: 4px;">✔ <strong>AI & Data Analytics for Construction</strong></li>
-        <li style="margin-bottom: 4px;">✔ <strong>Cloud & Web Solutions</strong></li>
-    </ul>
-    <p style="margin-top: 8px;"><strong>Innovate. Optimize. Build Smarter.</strong></p>
-    <p>📍 Salem & Bangalore | 🌐 Serving Local & International Clients</p>
-</div>
-
+      <p id="info-text"></p>
+    </div>
+  </div>
   
   <script>
+    // Company details (only shown on the first page or when logo is clicked)
+    var companyDetails = "<div style='font-family: Arial, sans-serif; font-size: 12px; line-height: 1.6;'>" +
+      "<h2 style='font-size: 14px; margin-bottom: 12px;'><strong>Yagneshwaran Design Group – IT Solutions for Architecture & Construction</strong></h2>" +
+      "<p>We provide cutting-edge <strong>IT services</strong> for architects, builders, and real estate firms, including:</p>" +
+      "<ul style='list-style: none; padding: 0; margin-top: 8px;'>" +
+      "<li style='margin-bottom: 4px;'>✔ <strong>360° Virtual Walkthroughs & 3D Visualization</strong></li>" +
+      "<li style='margin-bottom: 4px;'>✔ <strong>BIM & CAD Drafting</strong></li>" +
+      "<li style='margin-bottom: 4px;'>✔ <strong>Construction ERP & Project Management Software</strong></li>" +
+      "<li style='margin-bottom: 4px;'>✔ <strong>Smart Home & IoT Integration</strong></li>" +
+      "<li style='margin-bottom: 4px;'>✔ <strong>AI & Data Analytics for Construction</strong></li>" +
+      "<li style='margin-bottom: 4px;'>✔ <strong>Cloud & Web Solutions</strong></li>" +
+      "</ul>" +
+      "<p style='margin-top: 8px;'><strong>Innovate. Optimize. Build Smarter.</strong></p>" +
+      "<p>📍 Salem & Bangalore | 🌐 Serving Local & International Clients</p>" +
+      "</div>";
+    
+    // Default info text is the company details (first page)
+    document.getElementById('info-text').innerHTML = companyDetails;
+    
     // Initialize Pannellum 360 Viewer with defined scenes
     var viewer = pannellum.viewer('viewer', {
       "default": {
@@ -221,8 +226,8 @@
         "minPitch": -120,
         "maxPitch": 120,
         "hfov": 90,
-        "minHfov": 20,
-        "maxHfov": 70   // Increased by 20% from 80
+        "minHfov": 45,
+        "maxHfov": 100   // Note: This maxHfov is different from previous; adjust as needed.
       },
       "scenes": {
         "hall": {
@@ -244,7 +249,7 @@
       }
     });
     
-    // Update scene and info text when a navigation item is clicked
+    // When a navigation item is clicked, show room details in the sidebar.
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', function() {
         var sceneId = this.dataset.scene;
@@ -254,24 +259,25 @@
           case 'hall':
             infoText = 'Living Room: A spacious and elegantly designed living room with natural light and high-end finishes. The perfect space for relaxing or entertaining guests, featuring premium flooring, stylish furniture, and a seamless connection to other areas of the home.';
             break;
-            break;
           case 'kitchen':
             infoText = 'Kitchen: A modern and functional kitchen with high-quality countertops, ample storage, and top-tier appliances. Designed for both efficiency and style, this space is ideal for creating culinary masterpieces.';
-            break;
             break;
           case 'mbed':
             infoText = 'Master Bedroom: A luxurious master bedroom offering a serene retreat with ample space, soft lighting, and elegant interiors. The perfect blend of comfort and sophistication, ensuring restful nights and peaceful mornings.';
             break;
-            break;
           case 'balcony':
             infoText = 'Balcony: A private balcony with a stunning view, offering a peaceful escape from daily life. Whether enjoying a morning coffee or an evening breeze, this space is designed for relaxation and enjoyment.';
-            break;
             break;
           default:
             infoText = 'Click a room to explore.';
         }
         document.getElementById('info-text').innerText = infoText;
       });
+    });
+    
+    // When the sidebar logo is clicked, reset to company details.
+    document.querySelector('#info-panel .info-logo').addEventListener('click', function() {
+      document.getElementById('info-text').innerHTML = companyDetails;
     });
     
     // Toggle the Info Panel (Sidebar)
