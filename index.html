@@ -129,7 +129,7 @@
       top: 50%;
       right: -30px;
       background: rgba(0, 0, 0, 0.9);
-      color: white;  /* White arrow */
+      color: white;
       padding: 10px;
       border-radius: 0 5px 5px 0;
       cursor: pointer;
@@ -216,8 +216,9 @@
     // Default info text is the company details (first page)
     document.getElementById('info-text').innerHTML = companyDetails;
     
-    // Initialize Pannellum 360 Viewer with defined scenes
-    var viewer = pannellum.viewer('viewer', {
+    // Use media query to set different zoom settings for PC and mobile.
+    var isMobile = window.matchMedia("only screen and (max-width: 767px)").matches;
+    var viewerConfig = {
       "default": {
         "firstScene": "hall",
         "sceneFadeDuration": 1000,
@@ -225,9 +226,9 @@
         "autoRotate": -2,
         "minPitch": -120,
         "maxPitch": 120,
-        "hfov": 90,
+        "hfov": isMobile ? 80 : 90,         // Mobile gets a lower hfov (zoomed in more)
         "minHfov": 45,
-        "maxHfov": 100   // Note: This maxHfov is different from previous; adjust as needed.
+        "maxHfov": isMobile ? 60 : 100         // Mobile: lower max hfov for tighter zoom
       },
       "scenes": {
         "hall": {
@@ -247,9 +248,10 @@
           "panorama": "balcony.png"
         }
       }
-    });
+    };
+    var viewer = pannellum.viewer('viewer', viewerConfig);
     
-    // When a navigation item is clicked, show room details in the sidebar.
+    // When a navigation item is clicked, update scene and show room details in the sidebar.
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', function() {
         var sceneId = this.dataset.scene;
@@ -275,7 +277,7 @@
       });
     });
     
-    // When the sidebar logo is clicked, reset to company details.
+    // When the sidebar logo is clicked, reset info to company details.
     document.querySelector('#info-panel .info-logo').addEventListener('click', function() {
       document.getElementById('info-text').innerHTML = companyDetails;
     });
