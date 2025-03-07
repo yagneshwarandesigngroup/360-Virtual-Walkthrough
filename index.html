@@ -24,7 +24,6 @@
       left: 0;
       width: 100%;
       height: 100%;
-      /* Pure black background for better contrast */
       background: #000;
       display: flex;
       flex-direction: column;
@@ -33,7 +32,6 @@
       text-align: center;
       z-index: 10;
     }
-    /* Dark fade overlay for loading image */
     .loading-overlay {
       position: absolute;
       top: 0;
@@ -44,7 +42,6 @@
       opacity: 0.8;
       z-index: 1;
     }
-    /* Loading image fills the screen */
     .loading-image {
       width: 100%;
       height: 100%;
@@ -54,7 +51,6 @@
       left: 0;
       z-index: 0;
     }
-    /* Logo and text appear above overlay */
     .loading-logo {
       width: 300px; /* Increased by 20% from 180px */
       margin-bottom: 15px;
@@ -64,7 +60,7 @@
     .loading-text {
       font-size: 18px;
       font-weight: bold;
-      color: #fff; /* White for contrast */
+      color: #fff;
       position: relative;
       z-index: 2;
     }
@@ -123,28 +119,29 @@
       transition: left 0.4s ease-in-out;
       z-index: 6;
     }
-    /* Sidebar Pullout Arrow */
     #info-panel .pullout-arrow {
       position: absolute;
       top: 50%;
       right: -30px;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0,0,0,0.9);
       color: white;
       padding: 10px;
       border-radius: 0 5px 5px 0;
       cursor: pointer;
       transform: translateY(-50%);
-      transition: background 0.3s;
+      transition: opacity 0.5s ease, background 0.3s;
+      opacity: 1;
+      pointer-events: auto;
     }
     #info-panel .pullout-arrow:hover {
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0,0,0,0.4);
     }
     #info-panel .info-content {
       margin-top: 50px;
     }
     #info-panel .info-logo {
       width: 190px; /* Increased by 5% from 140px */
-      margin: 20px auto 20px; /* Centered with top margin */
+      margin: 20px auto 20px;
       display: block;
       cursor: pointer;
     }
@@ -152,6 +149,76 @@
       font-size: 14px;
       line-height: 1.5;
       white-space: pre-line;
+    }
+    /* Material Panel (Sidebar for Material Details) */
+    #material-panel {
+      position: fixed;
+      left: -350px;
+      top: 0; /* Occupies same vertical space as Info Panel */
+      width: 350px;
+      height: 100%;
+      background: rgba(200,0,0,0.8); /* Semi-transparent red */
+      color: white;
+      padding: 20px;
+      transition: left 0.4s ease-in-out;
+      z-index: 7;
+    }
+    #material-panel .pullout-arrow {
+      position: absolute;
+      top: calc(50% + 20mm); /* Pullout arrow moved down by 20mm relative to center */
+      right: -30px;
+      background: rgba(200,0,0,0.9);
+      color: white;
+      padding: 10px;
+      border-radius: 0 5px 5px 0;
+      cursor: pointer;
+      transform: translateY(-50%);
+      transition: opacity 0.5s ease, background 0.3s;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #material-panel .pullout-arrow:hover {
+      background: rgba(200,0,0,0.4);
+    }
+    #material-panel .info-content {
+      margin-top: 50px;
+    }
+    #material-panel .info-logo {
+      width: 190px;
+      margin: 20px auto 20px;
+      display: block;
+      cursor: pointer;
+    }
+    #material-panel #material-text {
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+    /* Sidebar Labels for Info Panel */
+    #info-panel .sidebar-label {
+      position: absolute;
+      right: calc(-30px - 10mm); /* 10mm gap from pullout arrow */
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      color: black;
+      text-align: left;
+      opacity: 1;
+      transition: opacity 1s ease-out;
+      z-index: 10;
+    }
+    /* Sidebar Labels for Material Panel */
+    #material-panel .sidebar-label {
+      position: absolute;
+      right: calc(-30px - 20mm); /* 10mm gap from pullout arrow */
+      top: calc(50% + 20mm); /* Align with material pullout arrow */
+      transform: translateY(-50%);
+      font-size: 16px;
+      color: black;
+      text-align: left;
+      opacity: 1;
+      transition: opacity 1s ease-out;
+      z-index: 10;
     }
   </style>
 </head>
@@ -189,15 +256,26 @@
   
   <!-- Info Panel (Sidebar) -->
   <div id="info-panel">
-    <div class="pullout-arrow">❯</div>
+    <div class="sidebar-label" id="info-label">Info</div>
+    <div class="pullout-arrow" id="info-arrow">❯</div>
     <div class="info-content">
       <img src="logo.png" alt="Logo" class="info-logo">
       <p id="info-text"></p>
     </div>
   </div>
   
+  <!-- Material Panel (Sidebar for Material Details) -->
+  <div id="material-panel">
+    <div class="sidebar-label" id="material-label">Materials</div>
+    <div class="pullout-arrow" id="material-arrow">❯</div>
+    <div class="info-content">
+      <img src="logo.png" alt="Logo" class="info-logo">
+      <p id="material-text"></p>
+    </div>
+  </div>
+  
   <script>
-    // Company details (only shown on the first page or when logo is clicked)
+    // Company details for Info Panel.
     var companyDetails = "<div style='font-family: Arial, sans-serif; font-size: 12px; line-height: 1.6;'>" +
       "<h2 style='font-size: 14px; margin-bottom: 12px;'><strong>Yagneshwaran Design Group – IT Solutions for Architecture & Construction</strong></h2>" +
       "<p>We provide cutting-edge <strong>IT services</strong> for architects, builders, and real estate firms, including:</p>" +
@@ -212,9 +290,16 @@
       "<p style='margin-top: 8px;'><strong>Innovate. Optimize. Build Smarter.</strong></p>" +
       "<p>📍 Salem & Bangalore | 🌐 Serving Local & International Clients</p>" +
       "</div>";
-    
-    // Default info text is the company details (first page)
     document.getElementById('info-text').innerHTML = companyDetails;
+    
+    // Material details for each room.
+    var materialDetails = {
+      "hall": "Living Room Materials:\n- Marble flooring\n- Fabric sofa\n- Metal fixtures\n- Bisoke wood accents\n- High-gloss finish\n- Textured drapes",
+      "kitchen": "Kitchen Materials:\n- Granite countertops\n- Stainless steel appliances\n- Ceramic tiles\n- Quartz backsplash\n- Wood cabinetry",
+      "mbed": "Master Bedroom Materials:\n- Polished hardwood floors\n- Upholstered bed with premium linen\n- Brushed metal lamps\n- Soft cotton curtains",
+      "balcony": "Balcony Materials:\n- Composite decking\n- Glass railings\n- Weather-resistant metal accents\n- Stone veneer"
+    };
+    document.getElementById('material-text').innerText = materialDetails["hall"];
     
     // Use media query to set different zoom settings for PC and mobile.
     var isMobile = window.matchMedia("only screen and (max-width: 767px)").matches;
@@ -226,9 +311,9 @@
         "autoRotate": -2,
         "minPitch": -120,
         "maxPitch": 120,
-        "hfov": isMobile ? 80 : 90,         // Mobile gets a lower hfov (zoomed in more)
+        "hfov": isMobile ? 80 : 90,         // Mobile: lower hfov (more zoomed in)
         "minHfov": 45,
-        "maxHfov": isMobile ? 60 : 100         // Mobile: lower max hfov for tighter zoom
+        "maxHfov": isMobile ? 60 : 100        // Mobile: lower max hfov
       },
       "scenes": {
         "hall": {
@@ -251,11 +336,30 @@
     };
     var viewer = pannellum.viewer('viewer', viewerConfig);
     
-    // When a navigation item is clicked, update scene and show room details in the sidebar.
+    // Function to show sidebar labels for a given duration.
+    function showLabel(sidebarId, duration) {
+      var label = document.querySelector(sidebarId + " .sidebar-label");
+      label.style.opacity = 1;
+      setTimeout(() => {
+        label.style.opacity = 0;
+      }, duration);
+    }
+    
+    // On initial load, show labels for 4 seconds.
+    window.addEventListener('load', function() {
+      showLabel("#info-panel", 4000);
+      showLabel("#material-panel", 4000);
+      setTimeout(() => {
+        document.getElementById('loading-screen').style.display = 'none';
+      }, 2000);
+    });
+    
+    // When a navigation item is clicked, update both Info and Material panels and show labels for 2 seconds.
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', function() {
         var sceneId = this.dataset.scene;
         viewer.loadScene(sceneId);
+        // Update Info Panel.
         let infoText = '';
         switch (sceneId) {
           case 'hall':
@@ -274,32 +378,73 @@
             infoText = 'Click a room to explore.';
         }
         document.getElementById('info-text').innerText = infoText;
+        // Update Material Panel.
+        document.getElementById('material-text').innerText = materialDetails[sceneId] || '';
+        // Show sidebar labels for 2 seconds.
+        showLabel("#info-panel", 2000);
+        showLabel("#material-panel", 2000);
       });
     });
     
-    // When the sidebar logo is clicked, reset info to company details.
+    // When the Info Panel logo is clicked, reset info to company details.
     document.querySelector('#info-panel .info-logo').addEventListener('click', function() {
       document.getElementById('info-text').innerHTML = companyDetails;
     });
     
     // Toggle the Info Panel (Sidebar)
-    const pulloutArrow = document.querySelector('#info-panel .pullout-arrow');
-    pulloutArrow.addEventListener('click', function() {
+    const infoArrow = document.querySelector('#info-panel .pullout-arrow');
+    const materialArrow = document.querySelector('#material-panel .pullout-arrow');
+    infoArrow.addEventListener('click', function() {
       const infoPanel = document.getElementById('info-panel');
+      const materialPanel = document.getElementById('material-panel');
+      // Close Material Panel and fade out its arrow.
+      materialPanel.style.left = '-350px';
+      materialArrow.style.opacity = '0';
+      materialArrow.style.pointerEvents = 'none';
+      
+      // Toggle Info Panel.
       if (infoPanel.style.left === '0px') {
         infoPanel.style.left = '-350px';
         this.innerHTML = '❯';
+        // Fade in material arrow after closing.
+        setTimeout(() => {
+          materialArrow.style.opacity = '1';
+          materialArrow.style.pointerEvents = 'auto';
+        }, 500);
       } else {
         infoPanel.style.left = '0px';
         this.innerHTML = '❮';
+        // Fade out material arrow.
+        materialArrow.style.opacity = '0';
+        materialArrow.style.pointerEvents = 'none';
       }
     });
     
-    // Hide the loading screen after the viewer is ready
-    window.addEventListener('load', function() {
-      setTimeout(() => {
-        document.getElementById('loading-screen').style.display = 'none';
-      }, 2000);
+    // Toggle the Material Panel (Sidebar)
+    materialArrow.addEventListener('click', function() {
+      const materialPanel = document.getElementById('material-panel');
+      const infoPanel = document.getElementById('info-panel');
+      // Close Info Panel and fade out its arrow.
+      infoPanel.style.left = '-350px';
+      infoArrow.style.opacity = '0';
+      infoArrow.style.pointerEvents = 'none';
+      
+      // Toggle Material Panel.
+      if (materialPanel.style.left === '0px') {
+        materialPanel.style.left = '-350px';
+        this.innerHTML = '❯';
+        // Fade in info arrow after closing.
+        setTimeout(() => {
+          infoArrow.style.opacity = '1';
+          infoArrow.style.pointerEvents = 'auto';
+        }, 500);
+      } else {
+        materialPanel.style.left = '0px';
+        this.innerHTML = '❮';
+        // Fade out info arrow.
+        infoArrow.style.opacity = '0';
+        infoArrow.style.pointerEvents = 'none';
+      }
     });
   </script>
 </body>
