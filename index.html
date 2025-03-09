@@ -154,7 +154,7 @@
     #material-panel {
       position: fixed;
       left: -350px;
-      top: 0; /* Occupies same vertical space as Info Panel */
+      top: 0; /* Occupies same vertical space as info panel */
       width: 350px;
       height: 100%;
       background: rgba(200,0,0,0.8); /* Semi-transparent red */
@@ -165,7 +165,7 @@
     }
     #material-panel .pullout-arrow {
       position: absolute;
-      top: calc(50% + 20mm); /* Pullout arrow moved down by 20mm relative to center */
+      top: calc(50% + 20mm); /* Moved down by 20mm relative to center */
       right: -30px;
       background: rgba(200,0,0,0.9);
       color: white;
@@ -200,7 +200,8 @@
       right: calc(-30px - 10mm); /* 10mm gap from pullout arrow */
       top: 50%;
       transform: translateY(-50%);
-      font-size: 14px;
+      font-size: 16px;
+      font-weight: bold;
       color: black;
       text-align: left;
       opacity: 1;
@@ -210,10 +211,11 @@
     /* Sidebar Labels for Material Panel */
     #material-panel .sidebar-label {
       position: absolute;
-      right: calc(-30px - 18.5mm); /* 10mm gap from pullout arrow */
+      right: calc(-30px - 10mm); /* 10mm gap from pullout arrow */
       top: calc(50% + 20mm); /* Align with material pullout arrow */
       transform: translateY(-50%);
-      font-size: 14px;
+      font-size: 16px;
+      font-weight: bold;
       color: black;
       text-align: left;
       opacity: 1;
@@ -318,7 +320,7 @@
                  "- <strong>Weather-Resistant Metal Accents</strong> for modern aesthetics<br>" +
                  "- <strong>Stone Veneer</strong> for a natural, elegant finish"
     };
-    document.getElementById('material-text').innerText = materialDetails["hall"];
+    document.getElementById('material-text').innerHTML = materialDetails["hall"];
     
     // Use media query to set different zoom settings for PC and mobile.
     var isMobile = window.matchMedia("only screen and (max-width: 767px)").matches;
@@ -398,7 +400,7 @@
         }
         document.getElementById('info-text').innerText = infoText;
         // Update Material Panel.
-        document.getElementById('material-text').innerText = materialDetails[sceneId] || '';
+        document.getElementById('material-text').innerHTML = materialDetails[sceneId] || '';
         // Show sidebar labels for 2 seconds.
         showLabel("#info-panel", 2000);
         showLabel("#material-panel", 2000);
