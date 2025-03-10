@@ -379,28 +379,29 @@
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', function() {
         var sceneId = this.dataset.scene;
-        viewer.loadScene(sceneId);
-        // Update Info Panel.
-        let infoText = '';
-        switch (sceneId) {
-         case 'hall':
-            infoText = 'Living Room: A spacious and elegantly designed living room with natural light and high-end finishes. The perfect space for relaxing or entertaining guests, featuring premium flooring, stylish furniture, and a seamless connection to other areas of the home.';
-            break;
-          case 'kitchen':
-            infoText = 'Kitchen: A modern and functional kitchen with high-quality countertops, ample storage, and top-tier appliances. Designed for both efficiency and style, this space is ideal for creating culinary masterpieces.';
-            break;
-          case 'mbed':
-            infoText = 'Master Bedroom: A luxurious master bedroom offering a serene retreat with ample space, soft lighting, and elegant interiors. The perfect blend of comfort and sophistication, ensuring restful nights and peaceful mornings.';
-            break;
-          case 'balcony':
-            infoText = 'Balcony: A private balcony with a stunning view, offering a peaceful escape from daily life. Whether enjoying a morning coffee or an evening breeze, this space is designed for relaxation and enjoyment.';
-            break;
-          default:
-            infoText = 'Click a room to explore.';
-        }
-        document.getElementById('info-text').innerText = infoText;
-        // Update Material Panel.
-        document.getElementById('material-text').innerHTML = materialDetails[sceneId] || '';
+         viewer.loadScene(sceneId);
+    // Update Info Panel.
+    let infoText = '';
+    switch (sceneId) {
+      case 'hall':
+        infoText = '<strong>Living Room:</strong> A grand and inviting space designed for comfort and elegance. Featuring expansive windows, premium Italian marble flooring, and custom-designed furniture.';
+        break;
+      case 'kitchen':
+        infoText = '<strong>Kitchen:</strong> A state-of-the-art culinary space equipped with high-end quartz countertops, soft-close cabinetry, and top-tier built-in appliances.';
+        break;
+      case 'mbed':
+        infoText = '<strong>Master Bedroom:</strong> A serene sanctuary combining luxury with relaxation, featuring warm ambient lighting, plush hardwood floors, and a custom-designed wardrobe.';
+        break;
+      case 'balcony':
+        infoText = '<strong>Balcony:</strong> A private outdoor haven designed for relaxation, offering stunning panoramic views and elegant glass railings.';
+        break;
+      default:
+        infoText = 'Click a room to explore.';
+    }
+    // Update Info Panel with HTML (so the <strong> tags are rendered)
+    document.getElementById('info-text').innerHTML = infoText;
+    // Update Material Panel.
+    document.getElementById('material-text').innerHTML = materialDetails[sceneId] || '';
         // Show sidebar labels for 2 seconds.
         showLabel("#info-panel", 2000);
         showLabel("#material-panel", 2000);
